@@ -281,12 +281,8 @@ class TreeAction extends EventEmitter {
 
         const jsonString = JSON.stringify(jsonData, null, 2);
 
-        const jsonOutput = document.querySelector(`#${this.containerId}-json-output`);
-        if (jsonOutput) {
-            jsonOutput.value = jsonString;
-        }
-
         this.emit(TreeAction.EVENTS.TREE.EXPORT, jsonString);
+        
         return jsonString;
     }
 

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tree Action Component</title>
-    <link rel="stylesheet" href="tree-action.css">
+    <link rel="stylesheet" href="./src/css/main.css">
     <style>
         body {
             font-family: sans-serif;
@@ -34,7 +34,9 @@
         <!-- The tree component will be rendered here -->
     </div>
 
-    <script src="tree-action.js"></script>
+    <script src="./src/js/event-emitter.js"></script>
+    <script src="./src/js/tree-node.js"></script>
+    <script src="./src/js/tree-action.js"></script>
     <script>
         let treeAction;
 
@@ -169,7 +171,7 @@
                 return new Promise((resolve) => {
                     setTimeout(() => {
                         resolve(node);
-                    }, 100000); // Simulate network delay
+                    }, 1000); // Simulate network delay
                 });
             };
 

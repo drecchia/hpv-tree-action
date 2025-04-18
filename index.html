@@ -4,18 +4,140 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tree CRUDS Selection</title>
-    <link rel="stylesheet" href="./main.css">
+    <title>TreeAction Component</title>
 </head>
 
 <body>
-    <h2>Tree Action Selection Component</h2>
-    <p>Click on operation buttons to toggle between allowed (green), denied (red), and unselected (white) states.</p>
+    <h1>TreeAction Component</h1>
 
-    <div id="tree-action-app"></div>
+    <div id="tree-container-1"></div>
+    <div id="tree-container-2"></div>
+    <div id="tree-container-3"></div>
 
-    <script src="./tree-action.js"></script>
-    <script src="./main.js"></script>
+    <script src="tree-action.js"></script>
+    <script>
+        function createSampleData(treeAction) {
+            // Add some sample folders and files with initial states
+            const documentsFolder = new TreeNode('docs', 'Documents', {
+                isFolder: true,
+                availableOperations: ['C', 'R', 'U', 'D', 'S'],
+                initialStates: {
+                    'R': 'allowed',
+                    'U': 'allowed'
+                }
+            });
+
+            documentsFolder.addChild(new TreeNode('doc1', 'Report.docx', {
+                isFolder: false,
+                availableOperations: ['R', 'U', 'D', 'S'],
+                initialStates: {
+                    'R': 'allowed',
+                    'D': 'denied'
+                }
+            }));
+
+            documentsFolder.addChild(new TreeNode('doc2', 'Budget.xlsx', {
+                isFolder: false,
+                availableOperations: ['R', 'U', 'S'],
+                initialStates: {
+                    'R': 'allowed',
+                    'U': 'denied'
+                }
+            }));
+
+            const picturesFolder = new TreeNode('pics', 'Pictures', {
+                isFolder: true,
+                availableOperations: ['C', 'R', 'S'],
+                initialStates: {
+                    'R': 'allowed'
+                }
+            });
+
+            picturesFolder.addChild(new TreeNode('pic1', 'Vacation.jpg', {
+                isFolder: false,
+                availableOperations: ['R', 'S'],
+                initialStates: {
+                    'R': 'allowed',
+                    'S': 'allowed'
+                }
+            }));
+
+            const projectsFolder = new TreeNode('projects', 'Projects', {
+                isFolder: true,
+                lazyLoad: true,
+                availableOperations: ['C', 'R', 'U', 'D', 'S']
+            });
+
+            treeAction.rootNode.addChild(documentsFolder);
+            treeAction.rootNode.addChild(picturesFolder);
+            treeAction.rootNode.addChild(projectsFolder);
+            treeAction.rootNode.addChild(new TreeNode('readme', 'README.txt', {
+                isFolder: false,
+                availableOperations: ['R', 'U'],
+                initialStates: {
+                    'R': 'allowed'
+                }
+            }));
+        }
+
+        // Basic initialization
+        const treeAction = new TreeAction({
+            containerId: 'tree-container-1',
+            operations: [
+                { code: 'C', tooltip: 'Criar' },
+                { code: 'R', tooltip: 'Read' },
+                { code: 'Rc', tooltip: 'Read Cascade' },
+                { code: 'U', tooltip: 'Update' },
+                { code: 'D', tooltip: 'Delete' },
+                { code: 'S', tooltip: 'Share' }
+            ]
+        });
+
+        // Custom initialization
+        const customTree = new TreeAction({
+            containerId: 'tree-container-2',
+            initialData: {
+                operations: [
+                    { code: 'V', tooltip: 'View' },
+                    { code: 'ED', tooltip: 'Edit' }
+                ],
+                tree: {
+                    id: 'custom-root',
+                    name: 'My Files',
+                    isFolder: true,
+                    level: 0,
+                    availableOperations: ['V', 'ED'],
+                    lazyLoad: false,
+                    children: [
+                        {
+                            id: 'folder1',
+                            name: 'Important Documents',
+                            isFolder: true,
+                            level: 1,
+                            availableOperations: ['V', 'ED'],
+                            lazyLoad: false,
+                            children: []
+                        }
+                    ]
+                }
+            }
+        });
+
+        // Basic initialization
+        const treeAction3 = new TreeAction({
+            containerId: 'tree-container-3',
+            operations: [
+                { code: 'C', tooltip: 'Criar' },
+                { code: 'R', tooltip: 'Read' },
+                { code: 'Rc', tooltip: 'Read Cascade' },
+                { code: 'U', tooltip: 'Update' },
+                { code: 'D', tooltip: 'Delete' },
+                { code: 'S', tooltip: 'Share' }
+            ]
+        });
+
+        createSampleData(treeAction3);
+    </script>
 </body>
 
 </html>

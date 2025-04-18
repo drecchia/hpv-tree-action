@@ -10,12 +10,102 @@
 <body>
     <h1>TreeAction Component</h1>
 
+    <h2>Event System Demo</h2>
+    <div id="tree-container-demo"></div>
+    <div class="event-log">
+        <h3>Event Log</h3>
+        <div id="event-log"></div>
+    </div>
+
+    <style>
+        .event-log {
+            margin: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        #event-log {
+            font-family: monospace;
+            white-space: pre-wrap;
+            font-size: 14px;
+        }
+        .event-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        .event-type {
+            color: #0066cc;
+            font-weight: bold;
+        }
+        .event-data {
+            color: #666;
+        }
+    </style>
+
+    <div id="tree-container-demo"></div>
     <div id="tree-container-1"></div>
     <div id="tree-container-2"></div>
     <div id="tree-container-3"></div>
 
     <script src="tree-action.js"></script>
     <script>
+        // Event Demo initialization
+        const eventDemo = new TreeAction({
+            containerId: 'tree-container-demo',
+            operations: [
+                { code: 'C', tooltip: 'Create' },
+                { code: 'R', tooltip: 'Read' },
+                { code: 'U', tooltip: 'Update' },
+                { code: 'D', tooltip: 'Delete' },
+                { code: 'S', tooltip: 'Share' }
+            ]
+        });
+
+        // Event logging function
+        function logEvent(eventType, data) {
+            const logElement = document.getElementById('event-log');
+            const entry = document.createElement('div');
+            entry.className = 'event-entry';
+            
+            const timestamp = new Date().toLocaleTimeString();
+            const eventData = JSON.stringify(data, (key, value) => {
+                if (key === 'parent' || key === 'children') return '[Circular]';
+                return value;
+            }, 2);
+            
+            entry.innerHTML = `
+                <span class="event-type">[${timestamp}] ${eventType}</span>
+                <pre class="event-data">${eventData}</pre>
+            `;
+            
+            logElement.insertBefore(entry, logElement.firstChild);
+        }
+
+        // Subscribe to events
+        Object.values(TreeAction.EVENTS).forEach(category => {
+            Object.values(category).forEach(eventType => {
+                eventDemo.on(eventType, (data) => {
+                    logEvent(eventType, data);
+                });
+            });
+        });
+
+        // Add sample data to demo tree
+        const docsFolder = new TreeNode('docs', 'Documents', {
+            isFolder: true,
+            availableOperations: ['C', 'R', 'U', 'D', 'S']
+        });
+
+        docsFolder.addChild(new TreeNode('report', 'Report.pdf', {
+            isFolder: false,
+            availableOperations: ['R', 'U', 'S']
+        }));
+
+        eventDemo.rootNode.addChild(docsFolder);
+        eventDemo.render();
+
         function createSampleData(treeAction) {
             // Add some sample folders and files with initial states
             const documentsFolder = new TreeNode('docs', 'Documents', {

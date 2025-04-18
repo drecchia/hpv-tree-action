@@ -167,3 +167,38 @@
 .tree-action-button:hover {
     background-color: #45a049;
 }
+
+.level-controls {
+    padding: 10px;
+    background-color: #f5f5f5;
+    border-bottom: 1px solid #ccc;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.level-input {
+    padding: 8px;
+    width: 80px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.level-input:focus {
+    outline: none;
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+/* Adjust button styles for consistency */
+.level-controls .tree-action-button {
+    padding: 8px 12px;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.level-controls .tree-action-button:not(:last-child) {
+    margin-right: 5px;
+}

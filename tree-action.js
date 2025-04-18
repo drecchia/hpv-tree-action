@@ -49,10 +49,79 @@ class TreeNode {
 }
 
 /**
+ * Simple Event Emitter implementation
+ */
+class EventEmitter {
+    constructor() {
+        this._events = {};
+    }
+
+    on(event, listener) {
+        if (!this._events[event]) {
+            this._events[event] = [];
+        }
+        this._events[event].push(listener);
+        return this;
+    }
+
+    off(event, listener) {
+        if (!this._events[event]) return this;
+        
+        const index = this._events[event].indexOf(listener);
+        if (index !== -1) {
+            this._events[event].splice(index, 1);
+        }
+        return this;
+    }
+
+    emit(event, ...args) {
+        if (!this._events[event]) return false;
+        
+        const listeners = this._events[event].slice();
+        for (let i = 0; i < listeners.length; i++) {
+            listeners[i].apply(this, args);
+        }
+        return true;
+    }
+
+    once(event, listener) {
+        const self = this;
+        function fn(...args) {
+            self.off(event, fn);
+            listener.apply(self, args);
+        }
+        this.on(event, fn);
+        return this;
+    }
+}
+
+/**
  * TreeAction Component - Main class for tree with operation buttons
  */
-class TreeAction {
+class TreeAction extends EventEmitter {
+    /**
+     * Event types supported by TreeAction
+     */
+    static EVENTS = {
+        NODE: {
+            COLLAPSE: 'nodeCollapse',
+            EXPAND: 'nodeExpand',
+            SELECT: 'nodeSelect'
+        },
+        OPERATION: {
+            CHANGE: 'operationChange',
+            STATE_UPDATE: 'operationStateUpdate',
+            BATCH_UPDATE: 'batchOperationUpdate'
+        },
+        TREE: {
+            UPDATE: 'treeUpdate',
+            DATA_LOAD: 'dataLoad',
+            EXPORT: 'exportData'
+        }
+    };
+
     constructor(options = {}) {
+        super();
         this.containerId = options.containerId || 'tree-container';
         this.operationTypes = options.operations || [
             { code: 'C', tooltip: 'Create' },
@@ -122,6 +191,63 @@ class TreeAction {
 
         header.appendChild(operationsList);
         wrapper.appendChild(header);
+
+        // Create level controls
+        const levelControls = document.createElement('div');
+        levelControls.className = 'level-controls';
+
+        // Add level input
+        const levelInput = document.createElement('input');
+        levelInput.type = 'number';
+        levelInput.min = '0';
+        levelInput.value = '0';
+        levelInput.className = 'level-input';
+        levelInput.placeholder = 'Level';
+
+        // Add expand/collapse buttons
+        const expandLevelBtn = document.createElement('button');
+        expandLevelBtn.textContent = 'Expand to Level';
+        expandLevelBtn.className = 'tree-action-button';
+        expandLevelBtn.addEventListener('click', () => {
+            const level = parseInt(levelInput.value, 10);
+            if (!isNaN(level) && level >= 0) {
+                this.expandToLevel(level);
+            }
+        });
+
+        const collapseLevelBtn = document.createElement('button');
+        collapseLevelBtn.textContent = 'Collapse to Level';
+        collapseLevelBtn.className = 'tree-action-button';
+        collapseLevelBtn.addEventListener('click', () => {
+            const level = parseInt(levelInput.value, 10);
+            if (!isNaN(level) && level >= 0) {
+                this.collapseToLevel(level);
+            }
+        });
+
+        // Add expand/collapse all buttons
+        const expandAllBtn = document.createElement('button');
+        expandAllBtn.textContent = 'Expand All';
+        expandAllBtn.className = 'tree-action-button';
+        expandAllBtn.addEventListener('click', () => {
+            this.expandToLevel(Number.MAX_SAFE_INTEGER);
+        });
+
+        const collapseAllBtn = document.createElement('button');
+        collapseAllBtn.textContent = 'Collapse All';
+        collapseAllBtn.className = 'tree-action-button';
+        collapseAllBtn.addEventListener('click', () => {
+            this.collapseToLevel(0);
+        });
+
+        // Assemble level controls
+        levelControls.appendChild(levelInput);
+        levelControls.appendChild(expandLevelBtn);
+        levelControls.appendChild(collapseLevelBtn);
+        levelControls.appendChild(expandAllBtn);
+        levelControls.appendChild(collapseAllBtn);
+
+        wrapper.appendChild(levelControls);
 
         // Create tree container
         const treeContainer = document.createElement('div');
@@ -257,7 +383,11 @@ class TreeAction {
     toggleCollapse(node) {
         if (!node.isFolder) return;
 
+        const oldState = node.collapsed;
         node.collapsed = !node.collapsed;
+
+        // Emit appropriate event
+        this.emit(node.collapsed ? TreeAction.EVENTS.NODE.COLLAPSE : TreeAction.EVENTS.NODE.EXPAND, node);
 
         // If expanding a node that needs lazy loading
         if (!node.collapsed && !node.loaded && !node.loading) {
@@ -283,7 +413,16 @@ class TreeAction {
     }
 
     setOperationState(node, operation, state) {
+        const oldState = node.operationState[operation];
         node.operationState[operation] = state;
+
+        // Emit single operation change event
+        this.emit(TreeAction.EVENTS.OPERATION.CHANGE, { 
+            node, 
+            operation, 
+            oldState, 
+            newState: state 
+        });
 
         // Add to pending operations to prevent multiple renders
         this.pendingOperations.push({ node, operation, state });
@@ -296,25 +435,38 @@ class TreeAction {
 
     processPendingOperations() {
         const processed = new Set();
+        const batchUpdates = [];
 
         while (this.pendingOperations.length > 0) {
             const { node, operation, state } = this.pendingOperations.shift();
 
             if (!processed.has(`${node.id}-${operation}`)) {
+                // Track changes for batch event
+                const update = { node, operation, state, affected: [] };
+                
                 // Apply state to children (cascade down)
                 if (node.isFolder) {
-                    this._applyOperationToChildren(node, operation, state);
+                    this._applyOperationToChildren(node, operation, state, update.affected);
                 }
 
                 // Update parent states (cascade up)
-                this._updateParentOperationStates(node, operation);
+                this._updateParentOperationStates(node, operation, update.affected);
 
                 processed.add(`${node.id}-${operation}`);
+                batchUpdates.push(update);
             }
+        }
+
+        // Emit batch update event if there were changes
+        if (batchUpdates.length > 0) {
+            this.emit(TreeAction.EVENTS.OPERATION.BATCH_UPDATE, batchUpdates);
         }
 
         // Re-render the tree
         this.render();
+        
+        // Emit tree update event
+        this.emit(TreeAction.EVENTS.TREE.UPDATE);
     }
 
     _applyOperationToChildren(node, operation, state) {
@@ -409,6 +561,9 @@ class TreeAction {
             jsonOutput.value = jsonString;
         }
 
+        // Emit export event
+        this.emit(TreeAction.EVENTS.TREE.EXPORT, jsonString);
+
         return jsonString;
     }
 
@@ -418,6 +573,7 @@ class TreeAction {
                 jsonData = JSON.parse(jsonData);
             } catch (e) {
                 console.error('Invalid JSON format', e);
+                this.emit(TreeAction.EVENTS.TREE.DATA_LOAD, { success: false, error: e });
                 return false;
             }
         }
@@ -433,6 +589,14 @@ class TreeAction {
         }
 
         this.render();
+        
+        // Emit load event
+        this.emit(TreeAction.EVENTS.TREE.DATA_LOAD, { 
+            success: true, 
+            operations: this.operationTypes,
+            tree: this.rootNode 
+        });
+        
         return true;
     }
 
@@ -499,6 +663,23 @@ class TreeAction {
             // Recursively expand children
             node.children.forEach(child => {
                 this._expandNodeToLevel(child, targetLevel);
+            });
+        }
+    }
+
+    collapseToLevel(level) {
+        this._collapseNodeToLevel(this.rootNode, level);
+        this.render();
+    }
+
+    _collapseNodeToLevel(node, targetLevel) {
+        if (node.level >= targetLevel) {
+            node.collapsed = true;
+        }
+        
+        if (node.isFolder) {
+            node.children.forEach(child => {
+                this._collapseNodeToLevel(child, targetLevel);
             });
         }
     }

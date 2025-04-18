@@ -1,233 +1,160 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TreeAction Component</title>
-</head>
-
-<body>
-    <h1>TreeAction Component</h1>
-
-    <h2>Event System Demo</h2>
-    <div id="tree-container-demo"></div>
-    <div class="event-log">
-        <h3>Event Log</h3>
-        <div id="event-log"></div>
-    </div>
-
+    <title>Tree Action Component</title>
+    <link rel="stylesheet" href="tree-action.css">
     <style>
-        .event-log {
+        body {
+            font-family: sans-serif;
             margin: 20px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            max-height: 300px;
-            overflow-y: auto;
         }
-        #event-log {
-            font-family: monospace;
-            white-space: pre-wrap;
-            font-size: 14px;
+        .tree-action-button {
+            margin-right: 5px;
         }
-        .event-entry {
-            margin: 5px 0;
+        .level-controls {
+            display: flex;
+            align-items: center;
+        }
+        .level-input {
+            width: 60px;
+            margin-right: 10px;
             padding: 5px;
-            border-bottom: 1px solid #eee;
-        }
-        .event-type {
-            color: #0066cc;
-            font-weight: bold;
-        }
-        .event-data {
-            color: #666;
+            border: 1px solid #ccc;
+            border-radius: 4px;
         }
     </style>
+</head>
+<body>
 
-    <div id="tree-container-demo"></div>
-    <div id="tree-container-1"></div>
-    <div id="tree-container-2"></div>
-    <div id="tree-container-3"></div>
+    <h1>Tree Action Component Example</h1>
+
+    <div id="tree-container">
+        <!-- The tree component will be rendered here -->
+    </div>
 
     <script src="tree-action.js"></script>
     <script>
-        // Event Demo initialization
-        const eventDemo = new TreeAction({
-            containerId: 'tree-container-demo',
-            operations: [
-                { code: 'C', tooltip: 'Create' },
-                { code: 'R', tooltip: 'Read' },
-                { code: 'U', tooltip: 'Update' },
-                { code: 'D', tooltip: 'Delete' },
-                { code: 'S', tooltip: 'Share' }
-            ]
-        });
+        let treeAction;
 
-        // Event logging function
-        function logEvent(eventType, data) {
-            const logElement = document.getElementById('event-log');
-            const entry = document.createElement('div');
-            entry.className = 'event-entry';
-            
-            const timestamp = new Date().toLocaleTimeString();
-            const eventData = JSON.stringify(data, (key, value) => {
-                if (key === 'parent' || key === 'children') return '[Circular]';
-                return value;
-            }, 2);
-            
-            entry.innerHTML = `
-                <span class="event-type">[${timestamp}] ${eventType}</span>
-                <pre class="event-data">${eventData}</pre>
-            `;
-            
-            logElement.insertBefore(entry, logElement.firstChild);
-        }
-
-        // Subscribe to events
-        Object.values(TreeAction.EVENTS).forEach(category => {
-            Object.values(category).forEach(eventType => {
-                eventDemo.on(eventType, (data) => {
-                    logEvent(eventType, data);
-                });
-            });
-        });
-
-        // Add sample data to demo tree
-        const docsFolder = new TreeNode('docs', 'Documents', {
-            isFolder: true,
-            availableOperations: ['C', 'R', 'U', 'D', 'S']
-        });
-
-        docsFolder.addChild(new TreeNode('report', 'Report.pdf', {
-            isFolder: false,
-            availableOperations: ['R', 'U', 'S']
-        }));
-
-        eventDemo.rootNode.addChild(docsFolder);
-        eventDemo.render();
-
-        function createSampleData(treeAction) {
-            // Add some sample folders and files with initial states
-            const documentsFolder = new TreeNode('docs', 'Documents', {
-                isFolder: true,
-                availableOperations: ['C', 'R', 'U', 'D', 'S'],
-                initialStates: {
-                    'R': 'allowed',
-                    'U': 'allowed'
-                }
-            });
-
-            documentsFolder.addChild(new TreeNode('doc1', 'Report.docx', {
-                isFolder: false,
-                availableOperations: ['R', 'U', 'D', 'S'],
-                initialStates: {
-                    'R': 'allowed',
-                    'D': 'denied'
-                }
-            }));
-
-            documentsFolder.addChild(new TreeNode('doc2', 'Budget.xlsx', {
-                isFolder: false,
-                availableOperations: ['R', 'U', 'S'],
-                initialStates: {
-                    'R': 'allowed',
-                    'U': 'denied'
-                }
-            }));
-
-            const picturesFolder = new TreeNode('pics', 'Pictures', {
-                isFolder: true,
-                availableOperations: ['C', 'R', 'S'],
-                initialStates: {
-                    'R': 'allowed'
-                }
-            });
-
-            picturesFolder.addChild(new TreeNode('pic1', 'Vacation.jpg', {
-                isFolder: false,
-                availableOperations: ['R', 'S'],
-                initialStates: {
-                    'R': 'allowed',
-                    'S': 'allowed'
-                }
-            }));
-
-            const projectsFolder = new TreeNode('projects', 'Projects', {
-                isFolder: true,
-                lazyLoad: true,
-                availableOperations: ['C', 'R', 'U', 'D', 'S']
-            });
-
-            treeAction.rootNode.addChild(documentsFolder);
-            treeAction.rootNode.addChild(picturesFolder);
-            treeAction.rootNode.addChild(projectsFolder);
-            treeAction.rootNode.addChild(new TreeNode('readme', 'README.txt', {
-                isFolder: false,
-                availableOperations: ['R', 'U'],
-                initialStates: {
-                    'R': 'allowed'
-                }
-            }));
-        }
-
-        // Basic initialization
-        const treeAction = new TreeAction({
-            containerId: 'tree-container-1',
-            operations: [
-                { code: 'C', tooltip: 'Criar' },
-                { code: 'R', tooltip: 'Read' },
-                { code: 'Rc', tooltip: 'Read Cascade' },
-                { code: 'U', tooltip: 'Update' },
-                { code: 'D', tooltip: 'Delete' },
-                { code: 'S', tooltip: 'Share' }
-            ]
-        });
-
-        // Custom initialization
-        const customTree = new TreeAction({
-            containerId: 'tree-container-2',
-            initialData: {
+        document.addEventListener('DOMContentLoaded', () => {
+            // Sample initial data
+            const initialTreeData = {
                 operations: [
-                    { code: 'V', tooltip: 'View' },
-                    { code: 'ED', tooltip: 'Edit' }
+                    { code: 'C', tooltip: 'Create' },
+                    { code: 'R', tooltip: 'Read' },
+                    { code: 'Rc', tooltip: 'Read Cascade' },
+                    { code: 'U', tooltip: 'Update' },
+                    { code: 'D', tooltip: 'Delete' },
+                    { code: 'S', tooltip: 'Share' },
                 ],
                 tree: {
-                    id: 'custom-root',
-                    name: 'My Files',
+                    id: 'root',
+                    name: 'Root Folder',
                     isFolder: true,
                     level: 0,
-                    availableOperations: ['V', 'ED'],
+                    operationState: {},
+                    availableOperations: ['C', 'R', 'Rc', 'U', 'D', 'S'],
                     lazyLoad: false,
+                    loaded: true,
                     children: [
                         {
-                            id: 'folder1',
-                            name: 'Important Documents',
+                            id: 'folder-1',
+                            name: 'Project Alpha',
                             isFolder: true,
                             level: 1,
-                            availableOperations: ['V', 'ED'],
-                            lazyLoad: false,
+                            operationState: { 'R': 'allowed' },
+                            availableOperations: ['C', 'R', 'U', 'D'],
+                            lazyLoad: true, // Example of lazy loading
+                            loaded: false,
                             children: []
+                        },
+                        {
+                            id: 'file-1',
+                            name: 'Document.txt',
+                            isFolder: false,
+                            level: 1,
+                            operationState: { 'R': 'allowed', 'U': 'allowed' },
+                            availableOperations: ['R', 'U'],
+                            lazyLoad: false,
+                            loaded: true
+                        },
+                        {
+                            id: 'folder-2',
+                            name: 'Project Beta',
+                            isFolder: true,
+                            level: 1,
+                            operationState: { 'C': 'denied', 'R': 'allowed' },
+                            availableOperations: ['C', 'R', 'U', 'D'],
+                            lazyLoad: false,
+                            loaded: true,
+                            children: [
+                                {
+                                    id: 'file-2',
+                                    name: 'Image.jpg',
+                                    isFolder: false,
+                                    level: 2,
+                                    operationState: { 'R': 'allowed' },
+                                    availableOperations: ['R'],
+                                    lazyLoad: false,
+                                    loaded: true
+                                }
+                            ]
                         }
                     ]
                 }
-            }
-        });
+            };
 
-        // Basic initialization
-        const treeAction3 = new TreeAction({
-            containerId: 'tree-container-3',
-            operations: [
-                { code: 'C', tooltip: 'Criar' },
-                { code: 'R', tooltip: 'Read' },
-                { code: 'Rc', tooltip: 'Read Cascade' },
-                { code: 'U', tooltip: 'Update' },
-                { code: 'D', tooltip: 'Delete' },
-                { code: 'S', tooltip: 'Share' }
-            ]
-        });
+            // Initialize the TreeAction component
+            treeAction = new TreeAction({
+                containerId: 'tree-container',
+                initialData: initialTreeData,
+                operations: [ // You can also define operations here if not in initialData
+                    { code: 'C', tooltip: 'Create' },
+                    { code: 'R', tooltip: 'Read' },
+                    { code: 'U', tooltip: 'Update' },
+                    { code: 'D', tooltip: 'Delete' },
+                    { code: 'S', tooltip: 'Share' } // Added 'Share' operation
+                ]
+            });
 
-        createSampleData(treeAction3);
+            // Example of attaching a custom state change handler
+            treeAction.onStateChange((changeInfo) => {
+                const { node, operation, oldState, newState } = changeInfo;
+                console.log(`State changed for node "${node.name}" (ID: ${node.id}) operation "${operation}": ${oldState} -> ${newState}`);
+
+                // Example custom logic: If a folder's 'Read' state is set to 'denied',
+                // automatically deny 'Read' for all its children.
+                if (node.isFolder && operation === 'R' && newState === 'denied') {
+                    console.log(`Propagating 'denied' for 'Read' to children of "${node.name}"`);
+                    treeAction.propagateToChildren(node, operation, 'denied');
+                }
+
+                // Example custom logic: If a child's state changes, update the parent's state
+                // (this is already handled by _updateParentOperationState, but you could
+                // add more complex logic here if needed).
+                if (node.parent) {
+                    console.log(`Updating parent state for "${node.parent.name}" after child change`);
+                    // treeAction._updateParentOperationState(node.parent, operation); // This is called internally by setOperationState if propagate is true
+                }
+
+                // After your custom logic, you might need to re-render if you made changes
+                // that the default rendering doesn't pick up immediately.
+                // treeAction.render(); // Uncomment if your custom logic requires a re-render
+            });
+
+            // Example of adding a new operation type dynamically
+            // setTimeout(() => {
+            //     treeAction.addNewOperationType('E', 'Execute');
+            // }, 3000);
+
+            // Example of removing an operation type dynamically
+            // setTimeout(() => {
+            //     treeAction.removeOperationType('S');
+            // }, 6000);
+        });
     </script>
-</body>
 
+</body>
 </html>

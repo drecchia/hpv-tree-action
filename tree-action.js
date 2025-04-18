@@ -30,20 +30,41 @@ class TreeNode {
         this.operationState = { ...this.operationState, ...states };
     }
 
+    /**
+     * Set the state for a single operation
+     * @param {string} operation - Operation code (e.g. 'C', 'R', 'U', 'D', 'S')
+     * @param {string} state - State to set ('allowed', 'denied', 'unselected')
+     * @returns {TreeNode} Current instance for chaining
+     * @throws {Error} If operation is not available or state is invalid
+     */
+    setState(operation, state) {
+        if (!this.availableOperations.includes(operation)) {
+            throw new Error(`Operation ${operation} not available for this node`);
+        }
+        if (!['allowed', 'denied', 'unselected'].includes(state)) {
+            throw new Error(`Invalid state: ${state}. Must be 'allowed', 'denied', or 'unselected'`);
+        }
+        this.operationState[operation] = state;
+        return this;
+    }
+
     addChild(childNode) {
         childNode.level = this.level + 1;
         childNode.parent = this;
+
         this.children.push(childNode);
+
         return childNode;
     }
 
     hasOperationMixedState(operation) {
         if (this.children.length === 0) return false;
 
-        const firstChildState = this.children[0].operationState[operation];
+        const firstChildState = this.children.find(child => child.availableOperations.includes(operation))?.operationState[operation] || 'unselected';
+
         return this.children.some(child =>
             child.availableOperations.includes(operation) &&
-            child.operationState[operation] !== firstChildState
+            (child.operationState[operation] || 'unselected') !== firstChildState
         );
     }
 }
@@ -66,7 +87,7 @@ class EventEmitter {
 
     off(event, listener) {
         if (!this._events[event]) return this;
-        
+
         const index = this._events[event].indexOf(listener);
         if (index !== -1) {
             this._events[event].splice(index, 1);
@@ -76,7 +97,7 @@ class EventEmitter {
 
     emit(event, ...args) {
         if (!this._events[event]) return false;
-        
+
         const listeners = this._events[event].slice();
         for (let i = 0; i < listeners.length; i++) {
             listeners[i].apply(this, args);
@@ -106,17 +127,17 @@ class TreeAction extends EventEmitter {
         NODE: {
             COLLAPSE: 'nodeCollapse',
             EXPAND: 'nodeExpand',
-            SELECT: 'nodeSelect'
+            SELECT: 'nodeSelect' // Added for potential future use
         },
         OPERATION: {
-            CHANGE: 'operationChange',
-            STATE_UPDATE: 'operationStateUpdate',
-            BATCH_UPDATE: 'batchOperationUpdate'
+            CHANGE: 'operationChange', // Emitted when any operation state changes
+            STATE_UPDATE: 'operationStateUpdate', // More granular update (internal use)
+            BATCH_UPDATE: 'batchOperationUpdate' // For future batch updates
         },
         TREE: {
-            UPDATE: 'treeUpdate',
-            DATA_LOAD: 'dataLoad',
-            EXPORT: 'exportData'
+            UPDATE: 'treeUpdate', // Emitted when the tree structure changes
+            DATA_LOAD: 'dataLoad', // Emitted after loading data
+            EXPORT: 'exportData' // Emitted after exporting data
         }
     };
 
@@ -136,10 +157,11 @@ class TreeAction extends EventEmitter {
             isFolder: true,
             level: 0,
             availableOperations: this.operationTypes.map(op => op.code),
-            lazyLoad: false
+            lazyLoad: false,
+            loaded: true // Root is always loaded
         });
 
-        this.pendingOperations = [];
+        this.pendingOperations = []; // For potential future batching
 
         // Initialize with data if provided
         if (options.initialData) {
@@ -163,6 +185,10 @@ class TreeAction extends EventEmitter {
 
     render() {
         const container = document.getElementById(this.containerId);
+        if (!container) {
+            console.error(`Container with ID "${this.containerId}" not found.`);
+            return;
+        }
         container.innerHTML = '';
 
         // Create main wrapper
@@ -180,14 +206,6 @@ class TreeAction extends EventEmitter {
         titleCell.className = 'operations-title';
         titleCell.textContent = 'Node / Operations';
         operationsList.appendChild(titleCell);
-
-        this.operationTypes.forEach(op => {
-            const opCell = document.createElement('div');
-            opCell.className = 'operation-type';
-            opCell.textContent = op.code;
-            opCell.title = op.tooltip;
-            operationsList.appendChild(opCell);
-        });
 
         header.appendChild(operationsList);
         wrapper.appendChild(header);
@@ -256,29 +274,6 @@ class TreeAction extends EventEmitter {
         this._renderNode(this.rootNode, treeContainer);
 
         wrapper.appendChild(treeContainer);
-
-        // Add JSON operations section
-        const jsonSection = document.createElement('div');
-        jsonSection.className = 'json-section';
-
-        const exportBtn = document.createElement('button');
-        exportBtn.textContent = 'Export JSON';
-        exportBtn.className = 'tree-action-button';
-        exportBtn.addEventListener('click', () => {
-            this.exportTreeAsJSON();
-        });
-
-        const jsonOutput = document.createElement('textarea');
-        jsonOutput.id = `${this.containerId}-json-output`;
-        jsonOutput.className = 'json-output';
-        jsonOutput.placeholder = 'JSON output will appear here...';
-        jsonOutput.rows = 5;
-
-        jsonSection.appendChild(exportBtn);
-        jsonSection.appendChild(jsonOutput);
-
-        wrapper.appendChild(jsonSection);
-
         container.appendChild(wrapper);
     }
 
@@ -390,15 +385,54 @@ class TreeAction extends EventEmitter {
         this.emit(node.collapsed ? TreeAction.EVENTS.NODE.COLLAPSE : TreeAction.EVENTS.NODE.EXPAND, node);
 
         // If expanding a node that needs lazy loading
-        if (!node.collapsed && !node.loaded && !node.loading) {
+        if (!node.collapsed && node.lazyLoad && !node.loaded && !node.loading) {
             this.loadNodeChildren(node);
+        } else {
+            // Re-render to reflect collapse/expand state immediately
+            this.render();
         }
-
-        this.render();
     }
 
+    /**
+     * Static method to handle state changes
+     * This is the default logic for how a single node's state changes.
+     * It does NOT handle propagation to parents or children.
+     * @param {TreeNode} node - Node to update
+     * @param {string} operation - Operation code
+     * @param {string} newState - New state to set ('unselected', 'allowed', 'denied')
+     * @returns {Object} State change info { node, operation, oldState, newState }
+     * @throws {Error} If parameters are invalid
+     */
+    static handleStateChange(node, operation, newState) {
+        if (!node || !operation || !['unselected', 'allowed', 'denied'].includes(newState)) {
+            throw new Error('Invalid state change parameters');
+        }
+        if (!node.availableOperations.includes(operation)) {
+            console.warn(`Operation ${operation} not available for node ${node.id}. State not changed.`);
+            return null; // Indicate no change occurred
+        }
+
+        const oldState = node.operationState[operation] || 'unselected';
+        if (oldState === newState) {
+            return null; // Indicate no change occurred
+        }
+
+        node.operationState[operation] = newState;
+
+        return {
+            node,
+            operation,
+            oldState,
+            newState
+        };
+    }
+
+    /**
+     * Toggles through operation states for a single node.
+     * This method uses the static handleStateChange and then emits an event.
+     * Propagation logic should be handled by listeners to the operationChange event.
+     */
     toggleOperationState(node, operation) {
-        // Cycle through states: unselected -> allowed -> denied -> unselected
         const currentState = node.operationState[operation] || 'unselected';
         let newState;
 
@@ -409,130 +443,161 @@ class TreeAction extends EventEmitter {
             default: newState = 'unselected';
         }
 
-        this.setOperationState(node, operation, newState);
+        const changeInfo = TreeAction.handleStateChange(node, operation, newState);
+
+        if (changeInfo) {
+            this.emit(TreeAction.EVENTS.OPERATION.CHANGE, changeInfo);
+            // Re-render after state change and event emission
+            this.render();
+        }
     }
 
+    /**
+     * Sets operation state for a single node.
+     * This method uses the static handleStateChange and then emits an event.
+     * Propagation logic should be handled by listeners to the operationChange event.
+     */
     setOperationState(node, operation, state) {
-        const oldState = node.operationState[operation];
-        node.operationState[operation] = state;
+        const changeInfo = TreeAction.handleStateChange(node, operation, state);
 
-        // Emit single operation change event
-        this.emit(TreeAction.EVENTS.OPERATION.CHANGE, { 
-            node, 
-            operation, 
-            oldState, 
-            newState: state 
-        });
-
-        // Add to pending operations to prevent multiple renders
-        this.pendingOperations.push({ node, operation, state });
-
-        // Process all pending operations in next animation frame
-        if (this.pendingOperations.length === 1) {
-            requestAnimationFrame(() => this.processPendingOperations());
+        if (changeInfo) {
+            this.emit(TreeAction.EVENTS.OPERATION.CHANGE, changeInfo);
+            // Re-render after state change and event emission
+            this.render();
         }
     }
 
-    processPendingOperations() {
-        const processed = new Set();
-        const batchUpdates = [];
 
-        while (this.pendingOperations.length > 0) {
-            const { node, operation, state } = this.pendingOperations.shift();
-
-            if (!processed.has(`${node.id}-${operation}`)) {
-                // Track changes for batch event
-                const update = { node, operation, state, affected: [] };
-                
-                // Apply state to children (cascade down)
-                if (node.isFolder) {
-                    this._applyOperationToChildren(node, operation, state, update.affected);
-                }
-
-                // Update parent states (cascade up)
-                this._updateParentOperationStates(node, operation, update.affected);
-
-                processed.add(`${node.id}-${operation}`);
-                batchUpdates.push(update);
-            }
-        }
-
-        // Emit batch update event if there were changes
-        if (batchUpdates.length > 0) {
-            this.emit(TreeAction.EVENTS.OPERATION.BATCH_UPDATE, batchUpdates);
-        }
-
-        // Re-render the tree
-        this.render();
-        
-        // Emit tree update event
-        this.emit(TreeAction.EVENTS.TREE.UPDATE);
-    }
-
-    _applyOperationToChildren(node, operation, state) {
+    /**
+     * Helper method to manually propagate state to children.
+     * This method is intended to be called by a custom event listener.
+     */
+    propagateToChildren(node, operation, state) {
         if (!node.children || node.children.length === 0) return;
 
         node.children.forEach(child => {
-            if (child.availableOperations.includes(operation)) {
-                child.operationState[operation] = state;
+            // Use the static handler to change the child's state without emitting
+            // a new 'operationChange' event for each child, to avoid infinite loops
+            // if the listener also updates parents.
+            const changeInfo = TreeAction.handleStateChange(child, operation, state);
+
+            if (changeInfo) {
+                // Optionally emit a more granular event for internal updates if needed
+                // this.emit(TreeAction.EVENTS.OPERATION.STATE_UPDATE, changeInfo);
 
                 // Recursively apply to descendants
                 if (child.isFolder) {
-                    this._applyOperationToChildren(child, operation, state);
+                    this.propagateToChildren(child, operation, state);
                 }
             }
         });
+
+        // Re-render once after propagating to all descendants
+        this.render();
     }
 
-    _updateParentOperationStates(node, operation) {
-        if (!node.parent) return;
+    /**
+     * Helper method to update a single parent's operation state based on its children.
+     * This method is intended to be called by a custom event listener.
+     */
+    _updateParentOperationState(parent, operation) {
+        if (!parent || !parent.availableOperations.includes(operation)) return;
 
-        const parent = node.parent;
-        if (!parent.availableOperations.includes(operation)) return;
-
-        // Check all siblings with the same operation
-        const siblings = parent.children.filter(child =>
+        const childrenWithOperation = parent.children.filter(child =>
             child.availableOperations.includes(operation)
         );
 
-        if (siblings.length === 0) return;
-
-        // Check if all siblings have the same state
-        const firstState = siblings[0].operationState[operation] || 'unselected';
-        const allSame = siblings.every(sibling =>
-            (sibling.operationState[operation] || 'unselected') === firstState
-        );
-
-        if (allSame) {
-            parent.operationState[operation] = firstState;
-        } else {
-            // Mixed state - leave as is, UI will show mixed indicator
+        if (childrenWithOperation.length === 0) {
+            // If no children have the operation, parent state should probably be unselected
+            const changeInfo = TreeAction.handleStateChange(parent, operation, 'unselected');
+            if (changeInfo) {
+                // this.emit(TreeAction.EVENTS.OPERATION.STATE_UPDATE, changeInfo);
+                if (parent.parent) {
+                    this._updateParentOperationState(parent.parent, operation);
+                }
+                this.render(); // Re-render after parent update
+            }
+            return;
         }
 
-        // Continue up the tree
-        this._updateParentOperationStates(parent, operation);
+        // Get all child states for this operation
+        const childStates = childrenWithOperation.map(child =>
+            child.operationState[operation] || 'unselected'
+        );
+
+        // Determine the new parent state
+        let newParentState;
+        const allSame = childStates.every(state => state === childStates[0]);
+
+        if (allSame) {
+            newParentState = childStates[0];
+        } else {
+            // Mixed state - the UI will handle displaying this visually
+            // We don't change the underlying state to 'mixed', it remains
+            // whatever it was or 'unselected' if not set.
+            // If you need to explicitly set a 'mixed' state, you'd need to
+            // add it to the allowed states and update the logic.
+            // For now, we just don't change the state if it's mixed.
+            return; // No state change needed for mixed state in this logic
+        }
+
+        // Use the static handler to change the parent's state without emitting
+        // a new 'operationChange' event, to avoid infinite loops if the listener
+        // also updates children.
+        const changeInfo = TreeAction.handleStateChange(parent, operation, newParentState);
+
+        if (changeInfo) {
+            // Optionally emit a more granular event for internal updates if needed
+            // this.emit(TreeAction.EVENTS.OPERATION.STATE_UPDATE, changeInfo);
+
+            // Continue up the tree if the parent's state changed
+            if (parent.parent) {
+                this._updateParentOperationState(parent.parent, operation);
+            }
+            this.render(); // Re-render after parent update
+        }
     }
 
+
+    /**
+     * Register a callback for state changes (operationChange event)
+     */
+    onStateChange(callback) {
+        return this.on(TreeAction.EVENTS.OPERATION.CHANGE, callback);
+    }
+
+    /**
+     * Remove a state change callback
+     */
+    offStateChange(callback) {
+        return this.off(TreeAction.EVENTS.OPERATION.CHANGE, callback);
+    }
+
+    /**
+     * Simulate loading children for a lazy-loaded node.
+     * In a real application, this would involve an API call.
+     */
     loadNodeChildren(node) {
-        if (!node.loading) {
+        if (!node.loading && node.lazyLoad && !node.loaded) {
             node.loading = true;
-            this.render();
+            this.render(); // Show loading indicator
 
             // Simulate API call with timeout
             setTimeout(() => {
-                // Generate random children
-                const childCount = Math.floor(Math.random() * 5) + 1;
+                // Generate random children (replace with your actual data loading logic)
+                const childCount = Math.floor(Math.random() * 3) + 1; // 1 to 3 children
                 for (let i = 0; i < childCount; i++) {
-                    const isChildFolder = Math.random() > 0.5;
+                    const isChildFolder = Math.random() > 0.6; // More files than folders
                     const childNode = new TreeNode(
                         `${node.id}-child-${i}`,
-                        `${isChildFolder ? 'Folder' : 'File'} ${i}`,
+                        `${isChildFolder ? 'Folder' : 'File'} ${i + 1}`,
                         {
                             isFolder: isChildFolder,
-                            lazyLoad: isChildFolder && Math.random() > 0.5,
+                            lazyLoad: isChildFolder && Math.random() > 0.7, // Some child folders are also lazy
                             availableOperations: this.operationTypes
-                                .filter(() => Math.random() > 0.2)
-                                .map(op => op.code)
+                                .filter(() => Math.random() > 0.1) // Randomly assign operations
+                                .map(op => op.code),
+                            initialStates: {} // Start with no states set
                         }
                     );
                     node.addChild(childNode);
@@ -540,12 +605,20 @@ class TreeAction extends EventEmitter {
 
                 node.loaded = true;
                 node.loading = false;
-                node.collapsed = false;
+                // node.collapsed = false; // Optionally expand after loading
 
+                this.render(); // Re-render with loaded children
+                this.emit(TreeAction.EVENTS.TREE.UPDATE, this.rootNode); // Notify tree structure update
+
+            }, 800); // Simulate network delay
+        } else if (node.loaded) {
+            // If already loaded, just ensure it's not collapsed if expanding
+            if (!node.collapsed) {
                 this.render();
-            }, 1000);
+            }
         }
     }
+
 
     exportTreeAsJSON() {
         const jsonData = {
@@ -589,14 +662,14 @@ class TreeAction extends EventEmitter {
         }
 
         this.render();
-        
+
         // Emit load event
-        this.emit(TreeAction.EVENTS.TREE.DATA_LOAD, { 
-            success: true, 
+        this.emit(TreeAction.EVENTS.TREE.DATA_LOAD, {
+            success: true,
             operations: this.operationTypes,
-            tree: this.rootNode 
+            tree: this.rootNode
         });
-        
+
         return true;
     }
 
@@ -610,7 +683,8 @@ class TreeAction extends EventEmitter {
             operationState: { ...node.operationState },
             availableOperations: [...node.availableOperations],
             lazyLoad: node.lazyLoad,
-            loaded: node.loaded
+            loaded: node.loaded,
+            collapsed: node.collapsed // Include collapsed state in serialization
         };
 
         if (node.children && node.children.length > 0) {
@@ -633,6 +707,7 @@ class TreeAction extends EventEmitter {
 
         node.parent = parent;
         node.loaded = data.loaded;
+        node.collapsed = data.collapsed !== undefined ? data.collapsed : true; // Default to collapsed if not specified
 
         if (data.children && data.children.length > 0) {
             data.children.forEach(childData => {
@@ -645,44 +720,40 @@ class TreeAction extends EventEmitter {
     }
 
     expandToLevel(level) {
-        this._expandNodeToLevel(this.rootNode, level);
-        this.render();
-    }
-
-    _expandNodeToLevel(node, targetLevel) {
-        if (node.level >= targetLevel) return;
-
-        if (node.isFolder) {
-            node.collapsed = false;
-
-            // Load if needed
-            if (!node.loaded && !node.loading) {
-                this.loadNodeChildren(node);
+        this._traverseTree(this.rootNode, (node) => {
+            if (node.level < level && node.isFolder) {
+                node.collapsed = false;
+                // Load if needed when expanding
+                if (node.lazyLoad && !node.loaded && !node.loading) {
+                    this.loadNodeChildren(node);
+                }
             }
-
-            // Recursively expand children
-            node.children.forEach(child => {
-                this._expandNodeToLevel(child, targetLevel);
-            });
-        }
+        });
+        this.render();
     }
 
     collapseToLevel(level) {
-        this._collapseNodeToLevel(this.rootNode, level);
+        this._traverseTree(this.rootNode, (node) => {
+            if (node.level >= level && node.isFolder) {
+                node.collapsed = true;
+            }
+        });
         this.render();
     }
 
-    _collapseNodeToLevel(node, targetLevel) {
-        if (node.level >= targetLevel) {
-            node.collapsed = true;
-        }
-        
-        if (node.isFolder) {
-            node.children.forEach(child => {
-                this._collapseNodeToLevel(child, targetLevel);
+    /**
+     * Generic tree traversal method
+     * @private
+     */
+    _traverseTree(startNode, callback) {
+        callback(startNode);
+        if (startNode.children) {
+            startNode.children.forEach(child => {
+                this._traverseTree(child, callback);
             });
         }
     }
+
 
     addNewOperationType(code, tooltip) {
         // Prevent duplicates
@@ -750,12 +821,14 @@ class TreeAction extends EventEmitter {
      */
     _findNodeById(startNode, nodeId) {
         if (startNode.id === nodeId) return startNode;
-        
-        for (const child of startNode.children) {
-            const found = this._findNodeById(child, nodeId);
-            if (found) return found;
+
+        if (startNode.children) {
+            for (const child of startNode.children) {
+                const found = this._findNodeById(child, nodeId);
+                if (found) return found;
+            }
         }
-        
+
         return null;
     }
 
@@ -769,6 +842,7 @@ class TreeAction extends EventEmitter {
     }
 
     updateOperationTypesList() {
+        // This method seems redundant, render() should be called after changes
         this.render();
     }
 

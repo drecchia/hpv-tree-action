@@ -115,6 +115,8 @@ class TreeAction extends EventEmitter {
             throw new Error('operationHandler is required in TreeAction constructor');
         }
 
+        this.loadingText = options.loadingText || 'Loading data...';
+
         this.containerId = options.containerId || 'tree-container';
         this.operationTypes = options.operations || [
             { code: 'C', tooltip: 'Create' },
@@ -125,6 +127,7 @@ class TreeAction extends EventEmitter {
         ];
 
         this.operationHandler = options.operationHandler;
+        this.childrenLoader = options.childrenLoader || null;
 
         this.rootNode = new TreeNode('root', 'Root', {
             isFolder: true,
@@ -311,7 +314,7 @@ class TreeAction extends EventEmitter {
         if (node.isFolder && !node.loaded && !node.collapsed) {
             const loadingElement = document.createElement('div');
             loadingElement.className = 'loading-indicator';
-            loadingElement.textContent = 'Loading...';
+            loadingElement.textContent = this.loadingText;
             childrenContainer.appendChild(loadingElement);
 
             if (!node.loading) {
@@ -346,31 +349,19 @@ class TreeAction extends EventEmitter {
             node.loading = true;
             this.render();
 
-            setTimeout(() => {
-                const childCount = Math.floor(Math.random() * 3) + 1;
-                for (let i = 0; i < childCount; i++) {
-                    const isChildFolder = Math.random() > 0.6;
-                    const childNode = new TreeNode(
-                        `${node.id}-child-${i}`,
-                        `${isChildFolder ? 'Folder' : 'File'} ${i + 1}`,
-                        {
-                            isFolder: isChildFolder,
-                            lazyLoad: isChildFolder && Math.random() > 0.7,
-                            availableOperations: this.operationTypes
-                                .filter(() => Math.random() > 0.1)
-                                .map(op => op.code),
-                            initialStates: {}
-                        }
-                    );
-                    node.addChild(childNode);
-                }
-
-                node.loaded = true;
-                node.loading = false;
-
-                this.render();
-                this.emit(TreeAction.EVENTS.TREE.UPDATE, this.rootNode);
-            }, 800);
+            Promise.resolve()
+                .then(() => this.childrenLoader ? this.childrenLoader(node) : null)
+                .then(() => {
+                    node.loaded = true;
+                    node.loading = false;
+                    this.render();
+                    this.emit(TreeAction.EVENTS.TREE.UPDATE, this.rootNode);
+                })
+                .catch(error => {
+                    console.error('Error loading children:', error);
+                    node.loading = false;
+                    this.render();
+                });
         } else if (node.loaded && !node.collapsed) {
             this.render();
         }

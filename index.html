@@ -148,11 +148,38 @@
                 }
             };
 
+            const childrenLoader =  async function(node) {
+                // Example: Instance code directly adding children
+                const child1 = new TreeNode('child1', 'File 1.txt', {
+                    isFolder: false,
+                    lazyLoad: false,
+                    availableOperations: ['C', 'R', 'U']
+                });
+                node.addChild(child1);
+
+                // Add more children as needed
+                const child2 = new TreeNode('child2', 'File 2.txt', {
+                    isFolder: false,
+                    lazyLoad: false,
+                    availableOperations: ['R', 'U', 'D']
+                });
+                node.addChild(child2);
+
+                // Simulate loading children
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        resolve(node);
+                    }, 1000); // Simulate network delay
+                });
+            };
+
             // Initialize with the operation handler
             treeAction = new TreeAction({
                 containerId: 'tree-container',
                 initialData: initialTreeData,
-                operationHandler
+                loadingText: 'Carregando...',
+                operationHandler,
+                childrenLoader,
             });
 
             // Example of adding a new operation type dynamically

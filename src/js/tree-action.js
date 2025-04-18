@@ -344,6 +344,7 @@ class TreeAction extends EventEmitter {
             level: data.level,
             availableOperations: data.availableOperations,
             lazyLoad: data.lazyLoad,
+            loaded: data.loaded,
             initialStates: data.operationState
         });
 

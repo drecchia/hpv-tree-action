@@ -52,8 +52,8 @@
                     { code: 'S', tooltip: 'Share' },
                 ],
                 tree: {
-                    id: 'root-folder',
-                    name: 'Root Folder',
+                    id: 'root-domain',
+                    name: '/',
                     isFolder: true,
                     level: 0,
                     operationState: {},
@@ -62,29 +62,52 @@
                     loaded: true,
                     children: [
                         {
-                            id: 'folder-alpha',
-                            name: 'Project Alpha',
+                            id: 'monitrack-domain',
+                            name: 'Monitrack',
                             isFolder: true,
                             level: 1,
                             operationState: { 'R': 'allowed' },
                             availableOperations: ['C', 'R', 'U', 'D'],
-                            lazyLoad: true, // Example of lazy loading
-                            loaded: false,
-                            children: []
+                            lazyLoad: false,
+                            loaded: true,
+                            children: [
+                                {
+                                    id: 'clientes-monitrack',
+                                    name: 'Cliente M 1',
+                                    isFolder: true,
+                                    level: 2,
+                                    operationState: { 'R': 'allowed' },
+                                    availableOperations: ['R'],
+                                    lazyLoad: false,
+                                    loaded: true,
+                                }
+                            ]
                         },
                         {
-                            id: 'file-1',
-                            name: 'Document.txt',
-                            isFolder: false,
+                            id: 'vetrade-domain',
+                            name: 'Vetrade',
+                            isFolder: true,
                             level: 1,
                             operationState: { 'R': 'allowed', 'U': 'allowed' },
                             availableOperations: ['R', 'U'],
                             lazyLoad: false,
-                            loaded: true
+                            loaded: true,
+                            children: [
+                                {
+                                    id: 'clientes-vetrade',
+                                    name: 'Cliente V 1',
+                                    isFolder: true,
+                                    level: 2,
+                                    operationState: { 'R': 'allowed' },
+                                    availableOperations: ['R'],
+                                    lazyLoad: false,
+                                    loaded: true,
+                                }
+                            ]
                         },
                         {
-                            id: 'folder-beta',
-                            name: 'Project Beta',
+                            id: 'shocksat-domain',
+                            name: 'Shocksat',
                             isFolder: true,
                             level: 1,
                             operationState: { 'C': 'denied', 'R': 'allowed' },
@@ -93,14 +116,14 @@
                             loaded: true,
                             children: [
                                 {
-                                    id: 'file-2',
-                                    name: 'Image.jpg',
-                                    isFolder: false,
+                                    id: 'clientes-shocksat',
+                                    name: 'Cliente S 1',
+                                    isFolder: true,
                                     level: 2,
                                     operationState: { 'R': 'allowed' },
                                     availableOperations: ['R'],
                                     lazyLoad: false,
-                                    loaded: true
+                                    loaded: true,
                                 }
                             ]
                         }
@@ -151,8 +174,13 @@
             };
 
             const childrenLoader =  async function(node) {
+                console.log(node);
+                
+                // random id
+                const randomId = Math.random().toString(36).substring(2, 15);
+
                 // Example: Instance code directly adding children
-                const child1 = new TreeNode('child1', 'File 1.txt', {
+                const child1 = new TreeNode('child1-' + randomId, 'File 1.txt', {
                     isFolder: false,
                     lazyLoad: false,
                     availableOperations: ['C', 'R', 'U']
@@ -160,7 +188,7 @@
                 node.addChild(child1);
 
                 // Add more children as needed
-                const child2 = new TreeNode('child2', 'File 2.txt', {
+                const child2 = new TreeNode('child2-' + randomId, 'File 2.txt', {
                     isFolder: false,
                     lazyLoad: false,
                     availableOperations: ['R', 'U', 'D']
@@ -171,7 +199,7 @@
                 return new Promise((resolve) => {
                     setTimeout(() => {
                         resolve(node);
-                    }, 1000); // Simulate network delay
+                    }, 100); // Simulate network delay
                 });
             };
 
@@ -183,6 +211,9 @@
                 operationHandler,
                 childrenLoader,
             });
+
+            // treeAction.getNodeById('child2').setState('R', 'allowed');
+            // treeAction.render();
 
             // Example of adding a new operation type dynamically
             // setTimeout(() => {

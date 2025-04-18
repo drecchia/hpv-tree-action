@@ -7,7 +7,8 @@ class TreeNode {
         this.name = name;
         this.isFolder = options.isFolder || false;
         this.lazyLoad = options.lazyLoad || false;
-        this.loaded = !this.lazyLoad;
+        // If loaded is explicitly set in options use that, otherwise it's the opposite of lazyLoad
+        this.loaded = options.loaded !== undefined ? options.loaded : !this.lazyLoad;
         this.collapsed = true;
         this.loading = false;
         this.level = options.level || 0;
@@ -42,5 +43,19 @@ class TreeNode {
             child.availableOperations.includes(operation) &&
             (child.operationState[operation] || 'unselected') !== firstChildState
         );
+    }
+
+    /**
+     * Sets the state for a specific operation
+     * @param {string} operation - The operation code (e.g. 'R', 'C', 'U', etc.)
+     * @param {string} state - The state to set (e.g. 'allowed', 'denied', etc.)
+     * @returns {TreeNode} - Returns this instance for method chaining
+     */
+    setState(operation, state) {
+        if (!this.availableOperations.includes(operation)) {
+            throw new Error(`Operation '${operation}' is not available for this node`);
+        }
+        this.operationState[operation] = state;
+        return this;
     }
 }

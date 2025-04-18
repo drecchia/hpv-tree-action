@@ -1,39 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tree CRUDS Selection</title>
     <link rel="stylesheet" href="./main.css">
 </head>
-<body>
-    <h2>Tree CRUDS Selection Component</h2>
-    <p>Click on operation buttons to toggle between allowed (green), denied (red), and unselected (white) states.</p>
-    
-    <div id="tree-action-app"></div>
-    
-    <script src="./main.js"></script>
-    <script>
-        // Initialize the component
-        const initTreeAction = () => {
-            const treeAction = new TreeAction({
-                containerId: 'tree-action-app',
-                defaultOperations: [
-                    { code: 'C', tooltip: 'Create' },
-                    { code: 'R', tooltip: 'Read' },
-                    { code: 'U', tooltip: 'Update' },
-                    { code: 'D', tooltip: 'Delete' },
-                    { code: 'S', tooltip: 'Share' }
-                ]
-            });
-        };
 
-        // Initialize when DOM is loaded or if already loaded
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initTreeAction);
-        } else {
-            initTreeAction();
-        }
-    </script>
+<body>
+    <h2>Tree Action Selection Component</h2>
+    <p>Click on operation buttons to toggle between allowed (green), denied (red), and unselected (white) states.</p>
+
+    <div id="tree-action-app"></div>
+
+    <script src="./tree-action.js"></script>
+    <script src="./main.js"></script>
 </body>
+
 </html>

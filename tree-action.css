@@ -184,20 +184,3 @@
     font-style: italic;
     color: #666;
 }
-
-/* JSON Section */
-.json-section {
-    padding: 10px;
-    border-top: 1px solid #ddd;
-    background-color: #f9f9f9;
-}
-
-.json-output {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-family: monospace;
-    font-size: 12px;
-    resize: vertical; /* Allow vertical resizing */
-}

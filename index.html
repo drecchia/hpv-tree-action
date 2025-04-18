@@ -50,7 +50,7 @@
                     { code: 'S', tooltip: 'Share' },
                 ],
                 tree: {
-                    id: 'root',
+                    id: 'root-folder',
                     name: 'Root Folder',
                     isFolder: true,
                     level: 0,
@@ -60,7 +60,7 @@
                     loaded: true,
                     children: [
                         {
-                            id: 'folder-1',
+                            id: 'folder-alpha',
                             name: 'Project Alpha',
                             isFolder: true,
                             level: 1,
@@ -81,7 +81,7 @@
                             loaded: true
                         },
                         {
-                            id: 'folder-2',
+                            id: 'folder-beta',
                             name: 'Project Beta',
                             isFolder: true,
                             level: 1,
@@ -106,42 +106,53 @@
                 }
             };
 
-            // Initialize the TreeAction component
+            // Operation handler must be provided to handle permission state changes
+            const operationHandler = (node, operation) => {
+                const currentState = node.operationState[operation] || 'unselected';
+                let newState;
+                
+                switch (currentState) {
+                    case 'unselected': newState = 'allowed'; break;
+                    case 'allowed': newState = 'denied'; break;
+                    case 'denied': newState = 'unselected'; break;
+                    default: newState = 'unselected';
+                }
+                
+                // Set the state for the clicked node
+                node.operationState[operation] = newState;
+
+                console.log(`State changed for node "${node.name}" (ID: ${node.id}) operation "${operation}": ${currentState} -> ${newState}`);
+
+                // Example: propagate denied state to children for 'Read' operation
+                if (node.isFolder && operation === 'R' && newState === 'denied') {
+                    node.children.forEach(child => {
+                        child.operationState[operation] = 'denied';
+                        if (child.isFolder) {
+                            // Recursively apply to descendants
+                            child.children.forEach(grandChild => {
+                                grandChild.operationState[operation] = 'denied';
+                            });
+                        }
+                    });
+                }
+
+                // Example: update parent state based on children (simplified)
+                if (node.parent) {
+                    const siblingsState = node.parent.children.map(child => 
+                        child.operationState[operation] || 'unselected'
+                    );
+                    const allSame = siblingsState.every(state => state === newState);
+                    if (allSame) {
+                        node.parent.operationState[operation] = newState;
+                    }
+                }
+            };
+
+            // Initialize with the operation handler
             treeAction = new TreeAction({
                 containerId: 'tree-container',
                 initialData: initialTreeData,
-                operations: [ // You can also define operations here if not in initialData
-                    { code: 'C', tooltip: 'Create' },
-                    { code: 'R', tooltip: 'Read' },
-                    { code: 'U', tooltip: 'Update' },
-                    { code: 'D', tooltip: 'Delete' },
-                    { code: 'S', tooltip: 'Share' } // Added 'Share' operation
-                ]
-            });
-
-            // Example of attaching a custom state change handler
-            treeAction.onStateChange((changeInfo) => {
-                const { node, operation, oldState, newState } = changeInfo;
-                console.log(`State changed for node "${node.name}" (ID: ${node.id}) operation "${operation}": ${oldState} -> ${newState}`);
-
-                // Example custom logic: If a folder's 'Read' state is set to 'denied',
-                // automatically deny 'Read' for all its children.
-                if (node.isFolder && operation === 'R' && newState === 'denied') {
-                    console.log(`Propagating 'denied' for 'Read' to children of "${node.name}"`);
-                    treeAction.propagateToChildren(node, operation, 'denied');
-                }
-
-                // Example custom logic: If a child's state changes, update the parent's state
-                // (this is already handled by _updateParentOperationState, but you could
-                // add more complex logic here if needed).
-                if (node.parent) {
-                    console.log(`Updating parent state for "${node.parent.name}" after child change`);
-                    // treeAction._updateParentOperationState(node.parent, operation); // This is called internally by setOperationState if propagate is true
-                }
-
-                // After your custom logic, you might need to re-render if you made changes
-                // that the default rendering doesn't pick up immediately.
-                // treeAction.render(); // Uncomment if your custom logic requires a re-render
+                operationHandler
             });
 
             // Example of adding a new operation type dynamically

@@ -37,8 +37,10 @@
     <script src="./src/js/event-emitter.js"></script>
     <script src="./src/js/tree-node.js"></script>
     <script src="./src/js/tree-action.js"></script>
+    <script src="./src/js/tree-action-ui.js"></script>
     <script>
         let treeAction;
+        let treeActionUI;
 
         document.addEventListener('DOMContentLoaded', () => {
             // Sample initial data
@@ -199,6 +201,8 @@
                         node.parent.operationState[operation] = newState;
                     }
                 }
+
+                treeActionUI.render();
             };
 
             const childrenLoader =  async function(node, query) {
@@ -241,16 +245,20 @@
             };
 
             // Initialize with the operation handler
+            // Initialize TreeAction for business logic
             treeAction = new TreeAction({
-                containerId: 'tree-container',
                 initialData: initialTreeData,
-                loadingText: 'Carregando...',
                 operationHandler,
                 childrenLoader,
             });
 
+            // Initialize TreeActionUI for rendering
+            treeActionUI = new TreeActionUI(treeAction, {
+                containerId: 'tree-container',
+                loadingText: 'Carregando...'
+            });
+
             // treeAction.getNodeById('child2').setState('R', 'allowed');
-            // treeAction.render();
 
             // Example of adding a new operation type dynamically
             // setTimeout(() => {

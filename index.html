@@ -159,7 +159,7 @@
             };
 
             // Operation handler must be provided to handle permission state changes
-            const operationHandler = (node, operation) => {
+            const operationClickHandler = (node, operation) => {
                 const currentState = node.operationState[operation] || 'unselected';
                 let newState;
                 
@@ -201,8 +201,6 @@
                         node.parent.operationState[operation] = newState;
                     }
                 }
-
-                treeActionUI.render();
             };
 
             const childrenLoader =  async function(node, query) {
@@ -248,7 +246,7 @@
             // Initialize TreeAction for business logic
             treeAction = new TreeAction({
                 initialData: initialTreeData,
-                operationHandler,
+                operationHandler: operationClickHandler,
                 childrenLoader,
             });
 

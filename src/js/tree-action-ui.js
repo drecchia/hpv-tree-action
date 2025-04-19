@@ -223,7 +223,7 @@ class TreeActionUI {
                 }
 
                 opButton.addEventListener('click', () => {
-                    this.treeAction.operationHandler(node, op.code);
+                    this.treeAction.actionClickHandler(node, op.code);
                     this.render();
                 });
 

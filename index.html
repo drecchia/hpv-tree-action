@@ -4,25 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tree Action Component</title>
-    <link rel="stylesheet" href="./src/css/main.css">
+    <link rel="stylesheet" href="./src/css/tree-action-ui.css">
     <style>
         body {
             font-family: sans-serif;
             margin: 20px;
-        }
-        .tree-action-button {
-            margin-right: 5px;
-        }
-        .level-controls {
-            display: flex;
-            align-items: center;
-        }
-        .level-input {
-            width: 60px;
-            margin-right: 10px;
-            padding: 5px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
         }
     </style>
 </head>
@@ -159,7 +145,7 @@
             };
 
             // Operation handler must be provided to handle permission state changes
-            const operationClickHandler = (node, operation) => {
+            const actionClickHandler = (node, operation) => {
                 const currentState = node.operationState[operation] || 'unselected';
                 let newState;
                 
@@ -246,7 +232,7 @@
             // Initialize TreeAction for business logic
             treeAction = new TreeAction({
                 initialData: initialTreeData,
-                operationHandler: operationClickHandler,
+                actionClickHandler,
                 childrenLoader,
             });
 

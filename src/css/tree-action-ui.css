@@ -1,3 +1,18 @@
+.tree-action-button {
+    margin-right: 5px;
+}
+.level-controls {
+    display: flex;
+    align-items: center;
+}
+.level-input {
+    width: 60px;
+    margin-right: 10px;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
 /* Basic Reset/Box-sizing */
 .tree-action-wrapper * {
     box-sizing: border-box;
@@ -158,9 +173,10 @@
 
 /* Operation Buttons */
 .operation-button {
-    width: 30px; /* Fixed width for operation buttons */
+    min-width: 30px; /* Fixed width for operation buttons */
     height: 24px;
-    padding: 0;
+    padding-right: 4px;
+    padding-left: 4px;
     margin: 0 2px;
     border: 1px solid #ccc;
     border-radius: 3px;

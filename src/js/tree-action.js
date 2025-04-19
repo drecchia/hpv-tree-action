@@ -16,23 +16,24 @@ class TreeAction extends EventEmitter {
         }
     };
 
+    static ACTIONS = [
+        { code: 'C', tooltip: 'Create' },
+        { code: 'R', tooltip: 'Read' },
+        { code: 'U', tooltip: 'Update' },
+        { code: 'D', tooltip: 'Delete' }
+    ];
+
     constructor(options = {}) {
         super();
 
-        if (!options.operationHandler) {
-            throw new Error('operationHandler is required in TreeAction constructor');
+        if (!options.actionClickHandler) {
+            throw new Error('actionClickHandler is required in TreeAction constructor');
         }
 
         this.isSearchActive = false;
-        this.operationTypes = options.operations || [
-            { code: 'C', tooltip: 'Create' },
-            { code: 'R', tooltip: 'Read' },
-            { code: 'U', tooltip: 'Update' },
-            { code: 'D', tooltip: 'Delete' },
-            { code: 'S', tooltip: 'Share' }
-        ];
+        this.operationTypes = options.operations || TreeAction.ACTIONS;
 
-        this.operationHandler = options.operationHandler;
+        this.actionClickHandler = options.actionClickHandler;
         this.childrenLoader = options.childrenLoader || null;
 
         this.rootNode = new TreeNode('root', 'Root', {
@@ -87,7 +88,7 @@ class TreeAction extends EventEmitter {
             tree: this._serializeNode(this.rootNode)
         };
 
-        const jsonString = JSON.stringify(jsonData, null, 2);
+        const jsonString = JSON.stringify(jsonData);
         this.emit(TreeAction.EVENTS.TREE.EXPORT, jsonString);
         return jsonString;
     }

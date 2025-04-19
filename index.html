@@ -78,20 +78,9 @@
                                     level: 2,
                                     operationState: { 'R': 'allowed' },
                                     availableOperations: ['R'],
-                                    lazyLoad: false,
-                                    loaded: true,
-                                    children: [
-                                        {
-                                            id: 'cliente-monitrack-1',
-                                            name: 'Frum',
-                                            isFolder: false,
-                                            level: 3,
-                                            operationState: { 'R': 'allowed' },
-                                            availableOperations: ['R'],
-                                            lazyLoad: false,
-                                            loaded: true,
-                                        }
-                                    ]
+                                    lazyLoad: true,
+                                    loaded: false,
+                                    children: []
                                 }
                             ]
                         },
@@ -212,14 +201,15 @@
                 }
             };
 
-            const childrenLoader =  async function(node) {
+            const childrenLoader =  async function(node, query) {
+                console.log(query);
                 console.log(node);
                 
                 // random id
                 const randomId = Math.random().toString(36).substring(2, 15);
 
                 // Example: Instance code directly adding children
-                const child1 = new TreeNode('child1-' + randomId, 'File 1.txt', {
+                const child1 = new TreeNode('child1-' + randomId, 'Frum', {
                     isFolder: false,
                     lazyLoad: false,
                     availableOperations: ['C', 'R', 'U']
@@ -233,6 +223,14 @@
                     availableOperations: ['R', 'U', 'D']
                 });
                 node.addChild(child2);
+
+                // Add more children as needed
+                const child3 = new TreeNode('child3-' + randomId, 'File 3.txt', {
+                    isFolder: false,
+                    lazyLoad: false,
+                    availableOperations: ['R', 'U', 'D']
+                });
+                node.addChild(child3); // Corrected to add child3 instead of child2
 
                 // Simulate loading children
                 return new Promise((resolve) => {

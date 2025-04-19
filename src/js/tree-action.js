@@ -10,7 +10,9 @@ class TreeAction extends EventEmitter {
         TREE: {
             UPDATE: 'treeUpdate',
             DATA_LOAD: 'dataLoad',
-            EXPORT: 'exportData'
+            EXPORT: 'exportData',
+            SEARCH_START: 'searchStart',
+            SEARCH_COMPLETE: 'searchComplete'
         }
     };
 
@@ -22,6 +24,7 @@ class TreeAction extends EventEmitter {
         }
 
         this.loadingText = options.loadingText || 'Loading data...';
+        this.isSearchActive = false;
 
         this.containerId = options.containerId || 'tree-container';
         this.operationTypes = options.operations || [
@@ -71,6 +74,44 @@ class TreeAction extends EventEmitter {
 
         const wrapper = document.createElement('div');
         wrapper.className = 'tree-action-wrapper';
+
+        // Create search controls
+        const searchControls = document.createElement('div');
+        searchControls.className = 'search-controls';
+
+        const searchInput = document.createElement('input');
+        searchInput.type = 'text';
+        searchInput.className = 'search-input';
+        searchInput.placeholder = 'Search by node name...';
+
+        const searchButton = document.createElement('button');
+        searchButton.textContent = 'Search';
+        searchButton.className = 'tree-action-button';
+        searchButton.addEventListener('click', async () => {
+            await this.search(searchInput.value);
+        });
+
+        // Add search on Enter key
+        searchInput.addEventListener('keyup', async (event) => {
+            if (event.key === 'Enter') {
+                await this.search(searchInput.value);
+            }
+        });
+
+        const clearSearchButton = document.createElement('button');
+        clearSearchButton.textContent = 'Clear';
+        clearSearchButton.className = 'tree-action-button';
+        clearSearchButton.addEventListener('click', async () => {
+            searchInput.value = '';
+            this.isSearchActive = false;
+            this.clearSearchVisibility();
+            this.collapseToLevel(0);
+        });
+
+        searchControls.appendChild(searchInput);
+        searchControls.appendChild(searchButton);
+        searchControls.appendChild(clearSearchButton);
+        wrapper.appendChild(searchControls);
 
         // Create operations header
         const header = document.createElement('div');
@@ -150,6 +191,11 @@ class TreeAction extends EventEmitter {
     }
 
     _renderNode(node, parentElement) {
+        // Skip rendering if node should be hidden during search
+        if (this.isSearchActive && !node.visibleInSearch) {
+            return;
+        }
+
         const nodeElement = document.createElement('div');
         nodeElement.className = 'tree-node';
         nodeElement.dataset.nodeId = node.id;
@@ -171,6 +217,10 @@ class TreeAction extends EventEmitter {
 
         const nameElement = document.createElement('span');
         nameElement.className = 'node-name';
+        if (node.matchesSearch) {
+            nameElement.classList.add('match');
+            delete node.matchesSearch; // Clear the flag after use
+        }
         nameElement.textContent = node.name;
 
         const operationsElement = document.createElement('div');
@@ -467,5 +517,120 @@ class TreeAction extends EventEmitter {
      */
     getNodeById(nodeId) {
         return this._findNodeById(this.rootNode, nodeId);
+    }
+
+    /**
+     * Search nodes by name and expand matching nodes with their parent folders
+     * @param {string} query - The search query
+     * @returns {Promise<void>}
+     */
+    clearSearchVisibility(node = this.rootNode) {
+        node.visibleInSearch = false;
+        node.matchesSearch = false;
+        if (node.children) {
+            node.children.forEach(child => this.clearSearchVisibility(child));
+        }
+    }
+
+    markPathAsVisible(node) {
+        let current = node;
+        while (current) {
+            current.visibleInSearch = true;
+            current = current.parent;
+        }
+    }
+
+    markChildrenVisible(node) {
+        if (!node.children) return;
+        node.children.forEach(child => {
+            child.visibleInSearch = true;
+            if (child.isFolder) {
+                this.markChildrenVisible(child);
+            }
+        });
+    }
+
+    async search(query) {
+        console.log('Search called with query:', query);
+        
+        if (!query) {
+            console.log('Empty query, resetting view');
+            this.isSearchActive = false;
+            this.clearSearchVisibility();
+            this.render();
+            return;
+        }
+
+        console.log('Starting search process');
+        this.emit(TreeAction.EVENTS.TREE.SEARCH_START);
+        this.isSearchActive = true;
+        this.clearSearchVisibility();
+        
+        // Track all promises for lazy-loaded nodes
+        const loadingPromises = [];
+
+        // Helper to load children and search recursively
+        const loadAndSearch = async (node) => {
+            // Load children first if needed
+            if (node.isFolder && node.lazyLoad && !node.loaded) {
+                console.log(`Loading children for folder: ${node.name}`);
+                node.loading = true;
+                const promise = Promise.resolve()
+                    .then(() => this.childrenLoader ? this.childrenLoader(node, query) : null)
+                    .then(() => {
+                        node.loaded = true;
+                        node.loading = false;
+                        console.log(`Finished loading children for folder: ${node.name}`);
+                    });
+                loadingPromises.push(promise);
+                await promise; // Wait for loading before proceeding
+            }
+
+            // Check for name match
+            const nodeName = node.name.toLowerCase();
+            const searchQuery = query.toLowerCase();
+            console.log(`Checking node: "${nodeName}" against query: "${searchQuery}"`);
+            
+            if (nodeName.includes(searchQuery)) {
+                console.log(`Match found in node: ${node.name}`);
+                node.matchesSearch = true; // Set flag for highlighting
+                node.visibleInSearch = true;
+                this.markPathAsVisible(node);
+                let current = node;
+                while (current.parent) {
+                    if (current.parent.isFolder) {
+                        console.log(`Expanding parent folder: ${current.parent.name}`);
+                        current.parent.collapsed = false;
+                    }
+                    current = current.parent;
+                }
+                if (node.isFolder) {
+                    node.collapsed = false;
+                    // Make all children visible when folder matches
+                    this.markChildrenVisible(node);
+                }
+            }
+
+            // Process children (only if they're already loaded or we just loaded them)
+            if (node.isFolder && node.children) {
+                await Promise.all(node.children.map(child => loadAndSearch(child)));
+            }
+        };
+
+        try {
+            // Start the search process
+            console.log('Starting recursive search from root');
+            await loadAndSearch(this.rootNode);
+            
+            // Wait for all lazy-loaded nodes to complete
+            console.log('Waiting for lazy-loaded nodes');
+            await Promise.all(loadingPromises);
+
+            console.log('Search complete, rendering results');
+            this.emit(TreeAction.EVENTS.TREE.SEARCH_COMPLETE);
+            this.render();
+        } catch (error) {
+            console.error('Error during search:', error);
+        }
     }
 }

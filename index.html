@@ -73,13 +73,25 @@
                             children: [
                                 {
                                     id: 'clientes-monitrack',
-                                    name: 'Cliente M 1',
+                                    name: 'Clientes',
                                     isFolder: true,
                                     level: 2,
                                     operationState: { 'R': 'allowed' },
                                     availableOperations: ['R'],
                                     lazyLoad: false,
                                     loaded: true,
+                                    children: [
+                                        {
+                                            id: 'cliente-monitrack-1',
+                                            name: 'Frum',
+                                            isFolder: false,
+                                            level: 3,
+                                            operationState: { 'R': 'allowed' },
+                                            availableOperations: ['R'],
+                                            lazyLoad: false,
+                                            loaded: true,
+                                        }
+                                    ]
                                 }
                             ]
                         },
@@ -95,13 +107,25 @@
                             children: [
                                 {
                                     id: 'clientes-vetrade',
-                                    name: 'Cliente V 1',
+                                    name: 'Clientes',
                                     isFolder: true,
                                     level: 2,
                                     operationState: { 'R': 'allowed' },
                                     availableOperations: ['R'],
                                     lazyLoad: false,
                                     loaded: true,
+                                    children: [
+                                        {
+                                            id: 'cliente-vetrade-1',
+                                            name: 'Duro na Queda',
+                                            isFolder: false,
+                                            level: 3,
+                                            operationState: { 'R': 'allowed' },
+                                            availableOperations: ['R'],
+                                            lazyLoad: false,
+                                            loaded: true,
+                                        }
+                                    ]
                                 }
                             ]
                         },
@@ -117,13 +141,25 @@
                             children: [
                                 {
                                     id: 'clientes-shocksat',
-                                    name: 'Cliente S 1',
+                                    name: 'Cliente',
                                     isFolder: true,
                                     level: 2,
                                     operationState: { 'R': 'allowed' },
                                     availableOperations: ['R'],
                                     lazyLoad: false,
                                     loaded: true,
+                                    children: [
+                                        {
+                                            id: 'cliente-shocksat-1',
+                                            name: 'Aghily',
+                                            isFolder: false,
+                                            level: 3,
+                                            operationState: { 'R': 'allowed' },
+                                            availableOperations: ['R'],
+                                            lazyLoad: false,
+                                            loaded: true,
+                                        }
+                                    ]
                                 }
                             ]
                         }
@@ -142,6 +178,9 @@
                     case 'denied': newState = 'unselected'; break;
                     default: newState = 'unselected';
                 }
+
+                console.log(`Operation "${operation}" clicked on node "${node.name}" (ID: ${node.id})`);
+                console.log(`Current state: ${currentState}, New state: ${newState}`);
                 
                 // Set the state for the clicked node
                 node.operationState[operation] = newState;

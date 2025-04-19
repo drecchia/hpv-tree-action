@@ -14,8 +14,8 @@ class TreeNode {
         this.level = options.level || 0;
         this.children = [];
         this.parent = null;
-        this.operationState = {};
-        this.availableOperations = options.availableOperations || [];
+        this.operationState = {}; // current state of operations
+        this.availableOperations = options.availableOperations || []; // available operations for this node
 
         // Initialize operations with initial states if provided
         if (options.initialStates) {

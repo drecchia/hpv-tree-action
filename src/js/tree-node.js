@@ -93,4 +93,15 @@ class TreeNode {
         
         return ancestors;
     }
+
+    /**
+     * Finds the nearest ancestor node that has the specified operation available
+     * @param {string} operation - The operation code to search for (e.g. 'R', 'C', 'U', etc.)
+     * @returns {TreeNode|null} - The nearest ancestor node with the operation, or null if none found
+     */
+    findNearestParentByOp(operation) {
+        return this.getAscendantNodes().find(node => 
+            node.availableOperations.includes(operation)
+        ) || null;
+    }
 }

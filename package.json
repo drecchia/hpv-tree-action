@@ -1,0 +1,34 @@
+{
+    "name": "tree-action",
+    "version": "1.0.0",
+    "author": "Danilo T Recchia",
+    "main": "dist/js/all.min.js",
+    "license": "CC-BY-NC-4.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/drecchia/tree-action.git"
+    },
+    "description": "Zero-dependency JavaScript library for building interactive treeviews with hierarchical permissions, lazy loading, event-driven updates, and advanced search capabilities.",
+    "keywords": [
+        "treeview",
+        "hierarchy",
+        "permissions",
+        "lazy-loading",
+        "vanilla-js",
+        "event-driven",
+        "zero-dependency",
+        "search",
+        "checklist",
+        "node-tree"
+    ],
+    "scripts": {
+        "build": "gulp default"
+    },
+    "devDependencies": {
+        "gulp": "^4.0.2",
+        "gulp-autoprefixer": "^8.0.0",
+        "gulp-clean-css": "^4.3.0",
+        "gulp-concat": "^2.6.1",
+        "gulp-minify": "^3.1.0"
+    }
+}

@@ -221,9 +221,9 @@ class TreeActionUI {
                 const state = node.operationState[op.code] || 'unselected';
                 opButton.classList.add(`state-${state}`);
 
-                if (node.isFolder && node.children.length > 0 && node.hasOperationMixedState(op.code)) {
-                    opButton.classList.add('state-mixed');
-                }
+                // if (node.isFolder && node.children.length > 0 && node.hasOperationMixedState(op.code)) {
+                //     opButton.classList.add('state-mixed');
+                // }
 
                 opButton.addEventListener('click', () => {
                     this.treeAction.actionClickHandler(node, op.code);

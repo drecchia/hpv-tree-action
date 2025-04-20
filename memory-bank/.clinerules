@@ -1,0 +1,217 @@
+# Tree Action Project Rules and Patterns
+
+## Code Organization
+
+### File Structure Patterns
+1. Source files in src/
+   - js/ for JavaScript components
+   - css/ for styling
+2. Build files in gulp/
+   - Separate js.js and css.js for build tasks
+3. Examples in examples/
+4. Built files in dist/
+
+### Naming Conventions
+1. Component Files:
+   - Main class matches filename
+   - Suffix with purpose (-ui, -node)
+   - Use kebab-case for files
+
+2. JavaScript:
+   - PascalCase for classes
+   - camelCase for methods/properties
+   - UPPER_SNAKE_CASE for constants
+
+3. CSS:
+   - BEM methodology
+   - tree-action prefix
+   - Descriptive modifiers
+
+## Implementation Patterns
+
+### Event System
+1. Event Names:
+   - nodeCollapse/nodeExpand for node events
+   - treeUpdate/dataLoad for tree events
+   - searchStart/searchComplete for search
+
+2. Event Handling:
+   - Always emit after state changes
+   - Include relevant data in event payload
+   - Handle errors in async operations
+
+### Tree Operations
+1. Node Management:
+   - Parent reference in each node
+   - Children array for folders
+   - Level tracking for hierarchy
+   - Lazy loading support
+
+2. State Updates:
+   - Immutable state changes
+   - Event emission after updates
+   - Batch operations when possible
+   - Clear error states
+
+### Error Handling
+1. Construction:
+   - Validate required options
+   - Check for missing handlers
+   - Verify operation types
+
+2. Runtime:
+   - Handle async failures
+   - Clear error states
+   - User feedback
+   - State consistency
+
+## Development Workflow
+
+### Build Process
+1. JavaScript:
+   ```bash
+   gulp js     # Process JS files
+   ```
+   - Concatenation
+   - Minification
+   - Source maps
+
+2. CSS:
+   ```bash
+   gulp css    # Process CSS files
+   ```
+   - Autoprefixer
+   - Minification
+   - Source maps
+
+### Testing Approach
+1. Unit Tests:
+   - Event system coverage
+   - Tree operations
+   - State management
+   - Node relationships
+
+2. Integration:
+   - UI interactions
+   - Data flow
+   - Error scenarios
+   - Browser compatibility
+
+## Documentation Standards
+
+### Code Comments
+1. Classes:
+   ```javascript
+   /**
+    * Class description
+    */
+   ```
+
+2. Methods:
+   ```javascript
+   /**
+    * Method description
+    * @param {Type} name - Description
+    * @returns {Type} Description
+    */
+   ```
+
+### Example Format
+1. Basic Usage:
+   ```javascript
+   const tree = new TreeAction({
+     actionClickHandler: (node, action) => {
+       // Handler implementation
+     }
+   });
+   ```
+
+2. Configuration:
+   ```javascript
+   const options = {
+     operations: [
+       { code: 'C', tooltip: 'Create' }
+     ],
+     childrenLoader: async (node) => {
+       // Loader implementation
+     }
+   };
+   ```
+
+## Performance Guidelines
+
+### Tree Operations
+1. Node Updates:
+   - Batch when possible
+   - Minimize reflows
+   - Use efficient selectors
+
+2. Search:
+   - Debounce input
+   - Optimize traversal
+   - Cancel pending searches
+
+### Event Handling
+1. Event Flow:
+   - Minimize event count
+   - Use delegation
+   - Batch updates
+
+2. DOM Updates:
+   - Minimize reflows
+   - Use fragments
+   - Efficient selectors
+
+## UI/UX Standards
+
+### Visual Hierarchy
+1. Node Display:
+   - Clear parent-child
+   - Obvious folders
+   - Loading states
+   - Operation buttons
+
+2. Interactions:
+   - Responsive clicks
+   - Smooth transitions
+   - Clear feedback
+   - Error states
+
+### Accessibility
+1. Keyboard:
+   - Arrow navigation
+   - Operation shortcuts
+   - Focus management
+
+2. Screen Readers:
+   - ARIA labels
+   - Role attributes
+   - State announcements
+
+## Version Control
+
+### Commit Messages
+1. Format:
+   ```
+   type(scope): description
+   
+   - Details point 1
+   - Details point 2
+   ```
+
+2. Types:
+   - feat: New features
+   - fix: Bug fixes
+   - docs: Documentation
+   - perf: Performance
+   - refactor: Code changes
+
+### Branch Strategy
+1. Main Branches:
+   - main: Production code
+   - develop: Development code
+
+2. Feature Branches:
+   - feature/name
+   - fix/name
+   - docs/name

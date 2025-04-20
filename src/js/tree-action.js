@@ -234,16 +234,6 @@ class TreeAction extends EventEmitter {
         });
     }
 
-    setNodeInitialStates(nodeId, states) {
-        const node = this._findNodeById(this.rootNode, nodeId);
-        if (node) {
-            node.setInitialStates(states);
-            this.emit(TreeAction.EVENTS.TREE.UPDATE, this.rootNode);
-            return true;
-        }
-        return false;
-    }
-
     _findNodeById(startNode, nodeId) {
         if (startNode.id === nodeId) return startNode;
 

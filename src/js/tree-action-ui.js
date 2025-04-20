@@ -202,6 +202,9 @@ class TreeActionUI {
             nameElement.classList.add('match');
             delete node.matchesSearch;
         }
+        if (node.lazyLoad) {
+            nameElement.classList.add('node-name-lazy');
+        }
         nameElement.textContent = node.name;
 
         const operationsElement = document.createElement('div');

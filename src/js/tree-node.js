@@ -30,6 +30,7 @@ class TreeNode {
     addChild(childNode) {
         childNode.level = this.level + 1;
         childNode.parent = this;
+
         this.children.push(childNode);
         return childNode;
     }

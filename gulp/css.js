@@ -11,7 +11,7 @@ exports.all = (cb) => {
 
 const dist = {
     'files': [
-        'src/css/checklist.css',
+        'src/css/tree-action-ui.css',
     ],
     'outputFolder': 'dist/css',
 }

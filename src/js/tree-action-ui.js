@@ -6,6 +6,12 @@ class TreeActionUI {
         this.treeAction = treeAction;
         this.containerId = options.containerId || 'tree-container';
         this.loadingText = options.loadingText || 'Loading data...';
+        this.operationsTitle = options.operationsTitle || 'Node / Operations';
+        
+        // UI component visibility options
+        this.showSearchControls = options.showSearchControls ?? true;
+        this.showTreeActionHeader = options.showTreeActionHeader ?? true;
+        this.showLevelControls = options.showLevelControls ?? true;
         
         // Initialize UI
         this.init();
@@ -46,14 +52,18 @@ class TreeActionUI {
         const wrapper = document.createElement('div');
         wrapper.className = 'tree-action-wrapper';
 
-        // Add search controls
-        wrapper.appendChild(this._createSearchControls());
+        // Conditionally add UI components based on configuration
+        if (this.showSearchControls) {
+            wrapper.appendChild(this._createSearchControls());
+        }
 
-        // Add operations header
-        wrapper.appendChild(this._createOperationsHeader());
+        if (this.showTreeActionHeader) {
+            wrapper.appendChild(this._createOperationsHeader());
+        }
 
-        // Add level controls
-        wrapper.appendChild(this._createLevelControls());
+        if (this.showLevelControls) {
+            wrapper.appendChild(this._createLevelControls());
+        }
 
         // Create and add tree container
         const treeContainer = document.createElement('div');
@@ -111,7 +121,7 @@ class TreeActionUI {
 
         const titleCell = document.createElement('div');
         titleCell.className = 'operations-title';
-        titleCell.textContent = 'Node / Operations';
+        titleCell.textContent = this.operationsTitle;
         operationsList.appendChild(titleCell);
 
         header.appendChild(operationsList);

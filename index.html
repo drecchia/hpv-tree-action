@@ -151,12 +151,21 @@
 
                 if ( node.parent ) {
                     let parentState = node.findNearestParentByOp(operation).operationState[operation];
-                    console.log(parentState);
 
-                    if ( parentState == 'allowed' ) {
-                        newState = 'denied';
+                    if ( !parentState ) {
+                        alert(`No parent state found for operation "${operation}" on node "${node.name}" (ID: ${node.id})`);
+                    } else if ( parentState == 'allowed' ) {
+                        if ( currentState == 'denied' ) {
+                            newState = 'unselected';
+                        } else {
+                            newState = 'denied';
+                        }
                     } else if ( parentState == 'denied' ) {
-                        newState = 'allowed';
+                        if ( currentState == 'allowed' ) {
+                            newState = 'unselected';
+                        } else {
+                            newState = 'allowed';
+                        }
                     }
                 } else {   
                     switch (currentState) {
@@ -236,7 +245,11 @@
             // Initialize TreeActionUI for rendering
             treeActionUI = new TreeActionUI(treeAction, {
                 containerId: 'tree-container',
-                loadingText: 'Carregando...'
+                loadingText: 'Carregando...',
+                operationsTitle: 'Açoes para nivel geral',
+                showSearchControls: true,
+                showTreeActionHeader: true,
+                showLevelControls: true
             });
 
             // treeAction.getNodeById('child2').setState('R', 'allowed');

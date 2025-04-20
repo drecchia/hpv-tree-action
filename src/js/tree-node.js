@@ -58,4 +58,38 @@ class TreeNode {
         this.operationState[operation] = state;
         return this;
     }
+
+    /**
+     * Gets all descendant nodes (children, grandchildren, etc.) as a flat array
+     * @returns {TreeNode[]} Array of all descendant nodes
+     */
+    getDescendantNodes() {
+        const allNodes = [];
+        
+        // Add direct children
+        allNodes.push(...this.children);
+        
+        // Recursively add children of children
+        for (const child of this.children) {
+            allNodes.push(...child.getDescendantNodes());
+        }
+        
+        return allNodes;
+    }
+
+    /**
+     * Gets all ancestor nodes (parent, grandparent, etc.) up to root as an array
+     * @returns {TreeNode[]} Array of all ancestor nodes from parent to root
+     */
+    getAscendantNodes() {
+        const ancestors = [];
+        let currentNode = this.parent;
+        
+        while (currentNode !== null) {
+            ancestors.push(currentNode);
+            currentNode = currentNode.parent;
+        }
+        
+        return ancestors;
+    }
 }

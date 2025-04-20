@@ -165,15 +165,10 @@
                 console.log(`State changed for node "${node.name}" (ID: ${node.id}) operation "${operation}": ${currentState} -> ${newState}`);
 
                 // Example: propagate denied state to children for 'Read' operation
-                if (node.isFolder && operation === 'R' && newState === 'denied') {
-                    node.children.forEach(child => {
-                        child.operationState[operation] = 'denied';
-                        if (child.isFolder) {
-                            // Recursively apply to descendants
-                            child.children.forEach(grandChild => {
-                                grandChild.operationState[operation] = 'denied';
-                            });
-                        }
+                if ( node.isFolder ) {
+                    // apply newState to all children
+                    node.getDescendantNodes().forEach(child => {
+                        child.operationState[operation] = newState;
                     });
                 }
 

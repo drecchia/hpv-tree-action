@@ -8,6 +8,21 @@ class TreeActionUI {
         this.loadingText = options.loadingText || 'Loading data...';
         this.operationsTitle = options.operationsTitle || 'Node / Operations';
         
+        // Text options
+        this.searchPlaceholderText = options.searchPlaceholderText || 'Search by node name...';
+        this.searchButtonText = options.searchButtonText || 'Search';
+        this.clearButtonText = options.clearButtonText || 'Clear';
+        this.expandToLevelText = options.expandToLevelText || 'Expand to Level';
+        this.collapseToLevelText = options.collapseToLevelText || 'Collapse to Level';
+        this.expandAllText = options.expandAllText || 'Expand All';
+        this.collapseAllText = options.collapseAllText || 'Collapse All';
+        this.levelPlaceholderText = options.levelPlaceholderText || 'Level';
+        this.folderIconText = options.folderIconText || '📁';
+        this.fileIconText = options.fileIconText || '📄';
+        this.collapsedIconText = options.collapsedIconText || '▶';
+        this.expandedIconText = options.expandedIconText || '▼';
+        this.operationUnavailableText = options.operationUnavailableText || '(Not available)';
+        
         // UI component visibility options
         this.showSearchControls = options.showSearchControls ?? true;
         this.showTreeActionHeader = options.showTreeActionHeader ?? true;
@@ -81,10 +96,10 @@ class TreeActionUI {
         const searchInput = document.createElement('input');
         searchInput.type = 'text';
         searchInput.className = 'search-input';
-        searchInput.placeholder = 'Search by node name...';
+        searchInput.placeholder = this.searchPlaceholderText;
 
         const searchButton = document.createElement('button');
-        searchButton.textContent = 'Search';
+        searchButton.textContent = this.searchButtonText;
         searchButton.className = 'tree-action-button';
         searchButton.addEventListener('click', () => {
             this.treeAction.search(searchInput.value);
@@ -97,7 +112,7 @@ class TreeActionUI {
         });
 
         const clearSearchButton = document.createElement('button');
-        clearSearchButton.textContent = 'Clear';
+        clearSearchButton.textContent = this.clearButtonText;
         clearSearchButton.className = 'tree-action-button';
         clearSearchButton.addEventListener('click', () => {
             searchInput.value = '';
@@ -137,10 +152,10 @@ class TreeActionUI {
         levelInput.min = '0';
         levelInput.value = '0';
         levelInput.className = 'level-input';
-        levelInput.placeholder = 'Level';
+        levelInput.placeholder = this.levelPlaceholderText;
 
         const expandLevelBtn = document.createElement('button');
-        expandLevelBtn.textContent = 'Expand to Level';
+        expandLevelBtn.textContent = this.expandToLevelText;
         expandLevelBtn.className = 'tree-action-button';
         expandLevelBtn.addEventListener('click', () => {
             const level = parseInt(levelInput.value, 10);
@@ -150,7 +165,7 @@ class TreeActionUI {
         });
 
         const collapseLevelBtn = document.createElement('button');
-        collapseLevelBtn.textContent = 'Collapse to Level';
+        collapseLevelBtn.textContent = this.collapseToLevelText;
         collapseLevelBtn.className = 'tree-action-button';
         collapseLevelBtn.addEventListener('click', () => {
             const level = parseInt(levelInput.value, 10);
@@ -160,14 +175,14 @@ class TreeActionUI {
         });
 
         const expandAllBtn = document.createElement('button');
-        expandAllBtn.textContent = 'Expand All';
+        expandAllBtn.textContent = this.expandAllText;
         expandAllBtn.className = 'tree-action-button';
         expandAllBtn.addEventListener('click', () => {
             this.treeAction.expandToLevel(Number.MAX_SAFE_INTEGER);
         });
 
         const collapseAllBtn = document.createElement('button');
-        collapseAllBtn.textContent = 'Collapse All';
+        collapseAllBtn.textContent = this.collapseAllText;
         collapseAllBtn.className = 'tree-action-button';
         collapseAllBtn.addEventListener('click', () => {
             this.treeAction.collapseToLevel(0);
@@ -196,7 +211,7 @@ class TreeActionUI {
         toggleElement.className = 'toggle-indicator';
 
         if (node.isFolder) {
-            toggleElement.textContent = node.collapsed ? '▶' : '▼';
+            toggleElement.textContent = node.collapsed ? this.collapsedIconText : this.expandedIconText;
             toggleElement.addEventListener('click', () => this.treeAction.toggleCollapse(node));
         } else {
             toggleElement.textContent = ' ';
@@ -204,7 +219,7 @@ class TreeActionUI {
 
         const iconElement = document.createElement('span');
         iconElement.className = 'node-icon';
-        iconElement.textContent = node.isFolder ? '📁' : '📄';
+        iconElement.textContent = node.isFolder ? this.folderIconText : this.fileIconText;
 
         const nameElement = document.createElement('span');
         nameElement.className = 'node-name';
@@ -245,7 +260,7 @@ class TreeActionUI {
                 const opPlaceholder = document.createElement('span');
                 opPlaceholder.className = 'operation-button state-disabled';
                 opPlaceholder.textContent = op.code;
-                opPlaceholder.title = `${op.tooltip} (Not available)`;
+                opPlaceholder.title = `${op.tooltip} ${this.operationUnavailableText}`;
                 operationsElement.appendChild(opPlaceholder);
             }
         });

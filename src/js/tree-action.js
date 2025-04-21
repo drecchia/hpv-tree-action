@@ -132,7 +132,6 @@ class TreeAction extends EventEmitter {
             loaded: node.loaded,
             collapsed: node.collapsed,
             isVisible: node.isVisible,
-            isTemporary: node.isTemporary
         };
 
         if (node.children && node.children.length > 0) {
@@ -153,7 +152,6 @@ class TreeAction extends EventEmitter {
             loaded: data.loaded,
             initialStates: data.operationState,
             isVisible: data.isVisible,
-            isTemporary: data.isTemporary
         });
 
         node.parent = parent;
@@ -191,28 +189,12 @@ class TreeAction extends EventEmitter {
         this.emit(TreeAction.EVENTS.TREE.UPDATE, this.rootNode);
     }
 
+    // nodes created during search
     deleteTemporaryNodes() {
-        const nodesToRemove = [];
-        
-        // First pass: collect all temporary nodes
         this._traverseTree(this.rootNode, (node) => {
-            if (node.isTemporary) {
-                nodesToRemove.push(node);
-            }
-        });
-        
-        // Second pass: remove nodes and update parents
-        nodesToRemove.forEach(node => {
-            const parent = node.parent;
-            if (parent) {
-                // mark for load again
-                parent.loaded = false;
-                parent.collapsed = true;
-
-                const index = parent.children.indexOf(node);
-                if (index !== -1) {
-                    parent.children.splice(index, 1);
-                }
+            if (node.isFolder && node.lazyLoad && !node.loaded) {
+                node.collapsed = true;
+                node.children = [];
             }
         });
         
@@ -336,7 +318,7 @@ class TreeAction extends EventEmitter {
                 const promise = Promise.resolve()
                     .then(() => this.childrenLoader ? this.childrenLoader(node, query) : null)
                     .then(() => {
-                        node.loaded = true;
+                        node.loaded = false; // force false to load again next time
                         node.loading = false;
                     });
                 loadingPromises.push(promise);

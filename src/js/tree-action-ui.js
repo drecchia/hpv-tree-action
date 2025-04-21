@@ -277,7 +277,7 @@ class TreeActionUI {
         childrenContainer.className = 'node-children';
         childrenContainer.style.display = node.collapsed ? 'none' : 'block';
 
-        if (node.isFolder && !node.loaded && !node.collapsed) {
+        if (node.isFolder && node.loading && !node.collapsed) {
             const loadingElement = document.createElement('div');
             loadingElement.className = 'loading-indicator';
             loadingElement.textContent = this.loadingText;

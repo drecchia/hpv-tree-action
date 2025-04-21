@@ -1,3 +1,15 @@
+/* Loading Indicator */
+@keyframes tree-action-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Pulse animation for matches */
+@keyframes tree-action-highlight-pulse {
+    0% { background-color: rgba(74, 158, 255, 0.3); }
+    100% { background-color: rgba(74, 158, 255, 0.1); }
+}
+
 /* Main Wrapper */
 .tree-action-wrapper {
     font-family: sans-serif;
@@ -91,7 +103,7 @@
         padding: 2px 4px 2px 8px;
         margin: -2px 0;
         border-left: 3px solid #4a9eff;
-        animation: highlightPulse 2s ease-in-out 1;
+        animation: tree-action-highlight-pulse 2s ease-in-out 1;
     }
 
     /* Parent path highlighting */
@@ -106,12 +118,6 @@
         border-radius: 2px;
         padding: 0 2px;
         font-weight: 500;
-    }
-
-    /* Pulse animation for matches */
-    @keyframes highlightPulse {
-        0% { background-color: rgba(74, 158, 255, 0.3); }
-        100% { background-color: rgba(74, 158, 255, 0.1); }
     }
 
     /* Level Controls */
@@ -254,12 +260,6 @@
         /* display is controlled by JS */
     }
 
-    /* Loading Indicator */
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-
     .loading-indicator {
         padding: 10px;
         text-align: center;
@@ -279,6 +279,6 @@
         border-top-color: #666;
         border-radius: 50%;
         display: inline-block;
-        animation: spin 0.5s infinite linear;
+        animation: tree-action-spin 0.5s infinite linear;
     }
 }

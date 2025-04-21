@@ -116,8 +116,7 @@ class TreeActionUI {
         clearSearchButton.className = 'tree-action-button';
         clearSearchButton.addEventListener('click', () => {
             searchInput.value = '';
-            this.treeAction.resetNodesVisibility();
-            this.treeAction.deleteTemporaryNodes();
+            this.treeAction.search();
             // this.treeAction.collapseToLevel(0);
         });
 

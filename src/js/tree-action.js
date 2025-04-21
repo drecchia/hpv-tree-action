@@ -31,6 +31,7 @@ class TreeAction extends EventEmitter {
         }
 
         this.operationTypes = options.operations ?? TreeAction.ACTIONS;
+        this.currentSearchQuery = null;
 
         this.actionClickHandler = options.actionClickHandler;
         this.childrenLoader = options.childrenLoader || null;
@@ -66,10 +67,15 @@ class TreeAction extends EventEmitter {
             node.loading = true;
             this.emit(TreeAction.EVENTS.TREE.UPDATE, this.rootNode);
 
+            // avoid double loading
+            node.children = [];
+
             Promise.resolve()
-                .then(() => this.childrenLoader ? this.childrenLoader(node) : null)
+                .then(() => this.childrenLoader ? this.childrenLoader(node, this.currentSearchQuery) : null)
                 .then(() => {
-                    node.loaded = true;
+                    if ( !this.currentSearchQuery ) {
+                        node.loaded = true;
+                    }
                     node.loading = false;
                     this.emit(TreeAction.EVENTS.TREE.UPDATE, this.rootNode);
                 })
@@ -300,10 +306,15 @@ class TreeAction extends EventEmitter {
 
     async search(query) {
         if (!query) {
-            this.clearSearchVisibility();
+            this.currentSearchQuery = null;
+            // back hidden nodes back to life
+            this.resetNodesVisibility();
+            // clear lazyLoad itens with search query
+            this.deleteTemporaryNodes();
             return;
         }
 
+        this.currentSearchQuery = query;
         this.emit(TreeAction.EVENTS.TREE.SEARCH_START);
 
         // Initially set all nodes as invisible
@@ -318,7 +329,6 @@ class TreeAction extends EventEmitter {
                 const promise = Promise.resolve()
                     .then(() => this.childrenLoader ? this.childrenLoader(node, query) : null)
                     .then(() => {
-                        node.loaded = false; // force false to load again next time
                         node.loading = false;
                     });
                 loadingPromises.push(promise);

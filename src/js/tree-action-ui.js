@@ -117,6 +117,7 @@ class TreeActionUI {
         clearSearchButton.addEventListener('click', () => {
             searchInput.value = '';
             this.treeAction.resetNodesVisibility();
+            this.treeAction.deleteTemporaryNodes();
             // this.treeAction.collapseToLevel(0);
         });
 

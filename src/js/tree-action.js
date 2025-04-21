@@ -30,7 +30,7 @@ class TreeAction extends EventEmitter {
             throw new Error('actionClickHandler is required in TreeAction constructor');
         }
 
-        this.operationTypes = options.operations || TreeAction.ACTIONS;
+        this.operationTypes = options.operations ?? TreeAction.ACTIONS;
 
         this.actionClickHandler = options.actionClickHandler;
         this.childrenLoader = options.childrenLoader || null;
@@ -131,7 +131,8 @@ class TreeAction extends EventEmitter {
             lazyLoad: node.lazyLoad,
             loaded: node.loaded,
             collapsed: node.collapsed,
-            isVisible: node.isVisible
+            isVisible: node.isVisible,
+            isTemporary: node.isTemporary
         };
 
         if (node.children && node.children.length > 0) {
@@ -151,7 +152,8 @@ class TreeAction extends EventEmitter {
             lazyLoad: data.lazyLoad,
             loaded: data.loaded,
             initialStates: data.operationState,
-            isVisible: data.isVisible
+            isVisible: data.isVisible,
+            isTemporary: data.isTemporary
         });
 
         node.parent = parent;
@@ -186,6 +188,35 @@ class TreeAction extends EventEmitter {
                 node.collapsed = true;
             }
         });
+        this.emit(TreeAction.EVENTS.TREE.UPDATE, this.rootNode);
+    }
+
+    deleteTemporaryNodes() {
+        const nodesToRemove = [];
+        
+        // First pass: collect all temporary nodes
+        this._traverseTree(this.rootNode, (node) => {
+            if (node.isTemporary) {
+                nodesToRemove.push(node);
+            }
+        });
+        
+        // Second pass: remove nodes and update parents
+        nodesToRemove.forEach(node => {
+            const parent = node.parent;
+            if (parent) {
+                // mark for load again
+                parent.loaded = false;
+                parent.collapsed = true;
+
+                const index = parent.children.indexOf(node);
+                if (index !== -1) {
+                    parent.children.splice(index, 1);
+                }
+            }
+        });
+        
+        // Emit update event
         this.emit(TreeAction.EVENTS.TREE.UPDATE, this.rootNode);
     }
 

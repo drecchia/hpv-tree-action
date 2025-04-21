@@ -206,25 +206,39 @@
                 const child1 = new TreeNode('child1-' + randomId, 'Frum', {
                     isFolder: false,
                     lazyLoad: false,
+                    isTemporary: query != null,
                     availableOperations: ['C', 'R', 'U']
                 });
-                node.addChild(child1);
+
+                if ( !query || child1.name.indexOf(query) !== -1 ) {
+                    node.addChild(child1);
+                }
 
                 // Add more children as needed
                 const child2 = new TreeNode('child2-' + randomId, 'File 2.txt', {
                     isFolder: false,
                     lazyLoad: false,
+                    isTemporary: query != null,
                     availableOperations: ['R', 'U', 'D']
                 });
-                node.addChild(child2);
+
+                
+                if ( !query || child2.name.indexOf(query) !== -1 ) {
+                    node.addChild(child2);
+                }
 
                 // Add more children as needed
                 const child3 = new TreeNode('child3-' + randomId, 'File 3.txt', {
                     isFolder: false,
                     lazyLoad: false,
+                    isTemporary: query != null,
                     availableOperations: ['R', 'U', 'D']
                 });
-                node.addChild(child3); // Corrected to add child3 instead of child2
+
+                
+                if ( !query || child3.name.indexOf(query) !== -1 ) {
+                    node.addChild(child3);
+                }
 
                 // Simulate loading children
                 return new Promise((resolve) => {

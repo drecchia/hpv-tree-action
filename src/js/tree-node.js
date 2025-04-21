@@ -5,18 +5,19 @@ class TreeNode {
     constructor(id, name, options = {}) {
         this.id = id;
         this.name = name;
-        this.isFolder = options.isFolder || false;
-        this.lazyLoad = options.lazyLoad || false;
-        this.isVisible = options.isVisible !== undefined ? options.isVisible : true;
+        this.isFolder = options.isFolder ?? false;
+        this.lazyLoad = options.lazyLoad ?? false;
+        this.isVisible = options.isVisible ?? true;
+        this.isTemporary = options.isTemporary ?? false; // created during search on lazyLoade nodes
         // If loaded is explicitly set in options use that, otherwise it's the opposite of lazyLoad
         this.loaded = options.loaded !== undefined ? options.loaded : !this.lazyLoad;
         this.collapsed = true;
         this.loading = false;
-        this.level = options.level || 0;
+        this.level = options.level ?? 0;
         this.children = [];
         this.parent = null;
         this.operationState = {}; // current state of operations
-        this.availableOperations = options.availableOperations || []; // available operations for this node
+        this.availableOperations = options.availableOperations ?? []; // available operations for this node
 
         // Initialize operations with initial states if provided
         if (options.initialStates) {

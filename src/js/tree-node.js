@@ -7,6 +7,7 @@ class TreeNode {
         this.name = name;
         this.isFolder = options.isFolder || false;
         this.lazyLoad = options.lazyLoad || false;
+        this.isVisible = options.isVisible !== undefined ? options.isVisible : true;
         // If loaded is explicitly set in options use that, otherwise it's the opposite of lazyLoad
         this.loaded = options.loaded !== undefined ? options.loaded : !this.lazyLoad;
         this.collapsed = true;

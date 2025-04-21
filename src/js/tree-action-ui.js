@@ -68,16 +68,16 @@ class TreeActionUI {
         wrapper.className = 'tree-action-wrapper';
 
         // Conditionally add UI components based on configuration
-        if (this.showSearchControls) {
-            wrapper.appendChild(this._createSearchControls());
-        }
-
         if (this.showTreeActionHeader) {
             wrapper.appendChild(this._createOperationsHeader());
         }
-
+        
         if (this.showLevelControls) {
             wrapper.appendChild(this._createLevelControls());
+        }
+
+        if (this.showSearchControls) {
+            wrapper.appendChild(this._createSearchControls());
         }
 
         // Create and add tree container
@@ -116,8 +116,8 @@ class TreeActionUI {
         clearSearchButton.className = 'tree-action-button';
         clearSearchButton.addEventListener('click', () => {
             searchInput.value = '';
-            this.treeAction.clearSearchVisibility();
-            this.treeAction.collapseToLevel(0);
+            this.treeAction.resetNodesVisibility();
+            // this.treeAction.collapseToLevel(0);
         });
 
         searchControls.appendChild(searchInput);
@@ -198,7 +198,7 @@ class TreeActionUI {
     }
 
     _renderNode(node, parentElement) {
-        if (this.treeAction.isSearchActive && !node.visibleInSearch) {
+        if (!node.isVisible) {
             return;
         }
 

@@ -30,7 +30,6 @@ class TreeAction extends EventEmitter {
             throw new Error('actionClickHandler is required in TreeAction constructor');
         }
 
-        this.isSearchActive = false;
         this.operationTypes = options.operations || TreeAction.ACTIONS;
 
         this.actionClickHandler = options.actionClickHandler;
@@ -131,7 +130,8 @@ class TreeAction extends EventEmitter {
             availableOperations: [...node.availableOperations],
             lazyLoad: node.lazyLoad,
             loaded: node.loaded,
-            collapsed: node.collapsed
+            collapsed: node.collapsed,
+            isVisible: node.isVisible
         };
 
         if (node.children && node.children.length > 0) {
@@ -150,7 +150,8 @@ class TreeAction extends EventEmitter {
             availableOperations: data.availableOperations,
             lazyLoad: data.lazyLoad,
             loaded: data.loaded,
-            initialStates: data.operationState
+            initialStates: data.operationState,
+            isVisible: data.isVisible
         });
 
         node.parent = parent;
@@ -259,20 +260,17 @@ class TreeAction extends EventEmitter {
         return this._findNodeById(this.rootNode, nodeId);
     }
 
-    clearSearchVisibility(node = this.rootNode) {
-        node.visibleInSearch = false;
-        node.matchesSearch = false;
-        if (node.children) {
-            node.children.forEach(child => this.clearSearchVisibility(child));
-        }
-        this.isSearchActive = false;
+    resetNodesVisibility() {
+        this._traverseTree(this.rootNode, (node) => {
+            node.isVisible = true;
+        });
         this.emit(TreeAction.EVENTS.TREE.UPDATE, this.rootNode);
     }
 
     markPathAsVisible(node) {
         let current = node;
         while (current) {
-            current.visibleInSearch = true;
+            current.isVisible = true;
             current = current.parent;
         }
     }
@@ -280,7 +278,7 @@ class TreeAction extends EventEmitter {
     markChildrenVisible(node) {
         if (!node.children) return;
         node.children.forEach(child => {
-            child.visibleInSearch = true;
+            child.isVisible = true;
             if (child.isFolder) {
                 this.markChildrenVisible(child);
             }
@@ -294,8 +292,11 @@ class TreeAction extends EventEmitter {
         }
 
         this.emit(TreeAction.EVENTS.TREE.SEARCH_START);
-        this.isSearchActive = true;
-        this.clearSearchVisibility();
+
+        // Initially set all nodes as invisible
+        this._traverseTree(this.rootNode, (node) => {
+            node.isVisible = false;
+        });
         
         const loadingPromises = [];
         const loadAndSearch = async (node) => {
@@ -315,8 +316,6 @@ class TreeAction extends EventEmitter {
             const searchQuery = query.toLowerCase();
             
             if (nodeName.includes(searchQuery)) {
-                node.matchesSearch = true;
-                node.visibleInSearch = true;
                 this.markPathAsVisible(node);
                 let current = node;
                 while (current.parent) {

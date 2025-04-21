@@ -87,9 +87,31 @@
     /* Highlight matching nodes */
     .node-name.match {
         background-color: rgba(74, 158, 255, 0.1);
-        border-radius: 2px;
-        padding: 2px 4px;
+        border-radius: 0 2px 2px 0;
+        padding: 2px 4px 2px 8px;
         margin: -2px 0;
+        border-left: 3px solid #4a9eff;
+        animation: highlightPulse 2s ease-in-out 1;
+    }
+
+    /* Parent path highlighting */
+    .node-name.contains-match {
+        color: #4a9eff;
+        font-weight: 500;
+    }
+
+    /* Text match highlighting */
+    .node-name .match-text {
+        background-color: rgba(74, 158, 255, 0.3);
+        border-radius: 2px;
+        padding: 0 2px;
+        font-weight: 500;
+    }
+
+    /* Pulse animation for matches */
+    @keyframes highlightPulse {
+        0% { background-color: rgba(74, 158, 255, 0.3); }
+        100% { background-color: rgba(74, 158, 255, 0.1); }
     }
 
     /* Level Controls */

@@ -97,6 +97,9 @@ class TreeActionUI {
         searchInput.type = 'text';
         searchInput.className = 'search-input';
         searchInput.placeholder = this.searchPlaceholderText;
+        if (this.treeAction.currentSearchQuery) {
+            searchInput.value = this.treeAction.currentSearchQuery;
+        }
 
         const searchButton = document.createElement('button');
         searchButton.textContent = this.searchButtonText;
@@ -223,14 +226,44 @@ class TreeActionUI {
 
         const nameElement = document.createElement('span');
         nameElement.className = 'node-name';
-        if (node.matchesSearch) {
-            nameElement.classList.add('match');
-            delete node.matchesSearch;
-        }
         if (node.lazyLoad) {
             nameElement.classList.add('node-name-lazy');
         }
-        nameElement.textContent = node.name;
+
+        // Handle search highlighting
+        if (this.treeAction.currentSearchQuery) {
+            const searchQuery = this.treeAction.currentSearchQuery.toLowerCase();
+            const nodeName = node.name;
+            const lowerNodeName = nodeName.toLowerCase();
+            const matchIndex = lowerNodeName.indexOf(searchQuery);
+
+            if (matchIndex !== -1) {
+                // This node has a match
+                nameElement.classList.add('match');
+                
+                // Wrap matching text in span
+                const before = nodeName.substring(0, matchIndex);
+                const match = nodeName.substring(matchIndex, matchIndex + searchQuery.length);
+                const after = nodeName.substring(matchIndex + searchQuery.length);
+                
+                nameElement.innerHTML = `${before}<span class="match-text">${match}</span>${after}`;
+            } else {
+                // Check if this node contains matches in its children
+                const hasMatchInChildren = node.isFolder && node.children.some(child => 
+                    child.isVisible && (
+                        child.name.toLowerCase().includes(searchQuery) || 
+                        (child.isFolder && child.children.some(grandChild => grandChild.isVisible))
+                    )
+                );
+                
+                if (hasMatchInChildren) {
+                    nameElement.classList.add('contains-match');
+                }
+                nameElement.textContent = nodeName;
+            }
+        } else {
+            nameElement.textContent = node.name;
+        }
 
         const operationsElement = document.createElement('div');
         operationsElement.className = 'node-operations';

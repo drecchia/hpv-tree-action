@@ -1,12 +1,12 @@
 {
-    "name": "tree-action",
+    "name": "hpv-tree-action",
     "version": "1.0.0",
     "author": "Danilo T Recchia",
     "main": "dist/js/all.min.js",
     "license": "CC-BY-NC-4.0",
     "repository": {
         "type": "git",
-        "url": "https://github.com/drecchia/tree-action.git"
+        "url": "https://github.com/drecchia/hpv-tree-action.git"
     },
     "description": "Zero-dependency JavaScript library for building interactive treeviews with hierarchical permissions, lazy loading, event-driven updates, and advanced search capabilities.",
     "keywords": [

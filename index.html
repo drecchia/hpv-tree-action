@@ -203,7 +203,7 @@
                 const randomId = Math.random().toString(36).substring(2, 15);
 
                 // Example: Instance code directly adding children
-                const child1 = new TreeNode('child1-' + randomId, 'Frum', {
+                const child1 = new TreeNode('child1-' + randomId, 'Z Frum', {
                     isFolder: false,
                     lazyLoad: false,
                     isTemporary: query != null,
@@ -239,6 +239,8 @@
                 if ( !query || child3.name.toLowerCase().indexOf(query.toLowerCase()) !== -1 ) {
                     node.addChild(child3);
                 }
+
+                treeAction.sortNodesByName(node);
 
                 // Simulate loading children
                 return new Promise((resolve) => {

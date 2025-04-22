@@ -279,6 +279,23 @@ class TreeAction extends EventEmitter {
         return this._findNodeById(this.rootNode, nodeId);
     }
 
+    /**
+     * Sorts all nodes in the tree alphabetically by name
+     * @param {TreeNode} [node=this.rootNode] - The node to start sorting from
+     */
+    sortNodesByName(node = this.rootNode) {
+        if (node.isFolder && node.children.length > 0) {
+            // Sort current level
+            node.children.sort((a, b) => a.name.localeCompare(b.name));
+            // Recursively sort children
+            node.children.forEach(child => this.sortNodesByName(child));
+        }
+        // Emit update event if we're at root level
+        if (node === this.rootNode) {
+            this.emit(TreeAction.EVENTS.TREE.UPDATE, this.rootNode);
+        }
+    }
+
     resetNodesVisibility() {
         this._traverseTree(this.rootNode, (node) => {
             node.isVisible = true;

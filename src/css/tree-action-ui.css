@@ -164,6 +164,11 @@
         padding: 5px 0px;
         border-bottom: 1px dotted #eee;
         min-height: 30px; /* Ensure consistent height */
+        transition: background-color 0.2s ease; /* Smooth hover transition */
+    }
+
+    .tree-node:hover {
+        background-color: rgba(74, 158, 255, 0.05); /* Very light blue matching our accent color */
     }
 
     .tree-node:last-child {

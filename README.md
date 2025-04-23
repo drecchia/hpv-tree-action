@@ -29,8 +29,8 @@ yarn add tree-action
 Or include directly in your HTML:
 
 ```html
-<link rel="stylesheet" href="https://unpkg.com/tree-action/dist/css/styles.min.css">
-<script src="https://unpkg.com/tree-action/dist/js/all.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/hpv-tree-action/dist/css/styles.min.css">
+<script src="https://unpkg.com/hpv-tree-action/dist/js/all.min.js"></script>
 ```
 
 ## 🚀 Quick Start

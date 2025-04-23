@@ -41,7 +41,7 @@
                 ],
                 tree: {
                     id: 'root-domain',
-                    name: '/',
+                    name: 'Master Level',
                     isFolder: true,
                     level: 0,
                     operationState: {},
@@ -50,8 +50,8 @@
                     loaded: true,
                     children: [
                         {
-                            id: 'monitrack-domain',
-                            name: 'Monitrack',
+                            id: 'c1-domain',
+                            name: 'Company 1',
                             isFolder: true,
                             level: 1,
                             operationState: { 'R': 'allowed' },
@@ -60,8 +60,8 @@
                             loaded: true,
                             children: [
                                 {
-                                    id: 'clientes-monitrack',
-                                    name: 'Clientes',
+                                    id: 'client-c1',
+                                    name: 'Client 1',
                                     isFolder: true,
                                     level: 2,
                                     operationState: { 'R': 'allowed' },
@@ -73,8 +73,8 @@
                             ]
                         },
                         {
-                            id: 'vetrade-domain',
-                            name: 'Vetrade',
+                            id: 'c2-domain',
+                            name: 'Company 2',
                             isFolder: true,
                             level: 1,
                             operationState: { 'R': 'allowed', 'U': 'allowed' },
@@ -83,8 +83,8 @@
                             loaded: true,
                             children: [
                                 {
-                                    id: 'clientes-vetrade',
-                                    name: 'Clientes',
+                                    id: 'client-c2',
+                                    name: 'Client 2',
                                     isFolder: true,
                                     level: 2,
                                     operationState: { 'R': 'allowed' },
@@ -93,8 +93,8 @@
                                     loaded: true,
                                     children: [
                                         {
-                                            id: 'cliente-vetrade-1',
-                                            name: 'Duro na Queda',
+                                            id: 'client-child-1',
+                                            name: 'Sub Client 1',
                                             isFolder: false,
                                             level: 3,
                                             operationState: { 'R': 'allowed' },
@@ -107,8 +107,8 @@
                             ]
                         },
                         {
-                            id: 'shocksat-domain',
-                            name: 'Shocksat',
+                            id: 'c3-domain',
+                            name: 'Company 3',
                             isFolder: true,
                             level: 1,
                             operationState: { 'C': 'denied', 'R': 'allowed' },
@@ -117,8 +117,8 @@
                             loaded: true,
                             children: [
                                 {
-                                    id: 'clientes-shocksat',
-                                    name: 'Cliente',
+                                    id: 'client-c3',
+                                    name: 'Client 3',
                                     isFolder: true,
                                     level: 2,
                                     operationState: { 'R': 'allowed' },
@@ -127,8 +127,8 @@
                                     loaded: true,
                                     children: [
                                         {
-                                            id: 'cliente-shocksat-1',
-                                            name: 'Aghily',
+                                            id: 'client-child-2',
+                                            name: 'Sub Client 2',
                                             isFolder: false,
                                             level: 3,
                                             operationState: { 'R': 'allowed' },
@@ -203,7 +203,7 @@
                 const randomId = Math.random().toString(36).substring(2, 15);
 
                 // Example: Instance code directly adding children
-                const child1 = new TreeNode('child1-' + randomId, 'Z Frum', {
+                const child1 = new TreeNode('child1-' + randomId, 'Dinamyc Sub Client', {
                     isFolder: false,
                     lazyLoad: false,
                     availableOperations: ['C', 'R', 'U']

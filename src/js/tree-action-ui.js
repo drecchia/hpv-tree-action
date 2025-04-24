@@ -28,6 +28,9 @@ class TreeActionUI {
         this.showTreeActionHeader = options.showTreeActionHeader ?? true;
         this.showLevelControls = options.showLevelControls ?? true;
         
+        // UI customization options
+        this.maxHeight = options.maxHeight || null;
+        
         // Initialize UI
         this.init();
     }
@@ -62,8 +65,15 @@ class TreeActionUI {
             console.error(`Container with ID "${this.containerId}" not found.`);
             return;
         }
-        container.innerHTML = '';
 
+        // Store the current scroll position of the tree container
+        let scrollTop = 0;
+        const currentTreeContainer = container.querySelector('.tree-container');
+        if (currentTreeContainer) {
+            scrollTop = currentTreeContainer.scrollTop;
+        }
+
+        container.innerHTML = '';
         const wrapper = document.createElement('div');
         wrapper.className = 'tree-action-wrapper';
 
@@ -83,10 +93,23 @@ class TreeActionUI {
         // Create and add tree container
         const treeContainer = document.createElement('div');
         treeContainer.className = 'tree-container';
+        
+        // Apply maxHeight if set
+        if (this.maxHeight) {
+            treeContainer.style.maxHeight = typeof this.maxHeight === 'number' ? 
+                `${this.maxHeight}px` : this.maxHeight;
+            treeContainer.style.overflowY = 'auto';
+        }
         this._renderNode(this.treeAction.rootNode, treeContainer);
         wrapper.appendChild(treeContainer);
 
         container.appendChild(wrapper);
+
+        // Restore the scroll position
+        const newTreeContainer = container.querySelector('.tree-container');
+        if (newTreeContainer) {
+            newTreeContainer.scrollTop = scrollTop;
+        }
     }
 
     _createSearchControls() {

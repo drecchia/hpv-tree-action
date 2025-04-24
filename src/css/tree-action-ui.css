@@ -10,6 +10,31 @@
     100% { background-color: rgba(74, 158, 255, 0.1); }
 }
 
+/* Legend */
+.action-legend {
+    padding: 10px;
+    background-color: #f9f9f9;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    margin-right: 12px;
+}
+
+.legend-color {
+    width: 16px;
+    height: 16px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    margin-right: 4px;
+}
+
 /* Main Wrapper */
 .tree-action-wrapper {
     font-family: sans-serif;

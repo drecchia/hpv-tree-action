@@ -273,6 +273,34 @@
                 showTreeActionHeader: true,
                 showLevelControls: true,
                 maxHeight: 400,
+                showLegend: true, // Enable legend display (this is the default)
+                legend: {
+                    unselected: {
+                        text: 'Não definida',
+                        bg: '#fff',
+                        border: '#ccc'
+                    },
+                    allowed: {
+                        text: 'Concedida',
+                        bg: '#d4edda',
+                        border: '#28a745'
+                    },
+                    denied: {
+                        text: 'Negada',
+                        bg: '#f8d7da',
+                        border: '#dc3545'
+                    },
+                    mixed: {
+                        text: 'Misto',
+                        bg: 'linear-gradient(45deg, #ffc107 50%, #fff 50%)',
+                        border: '#ffc107'
+                    },
+                    disabled: {
+                        text: 'Indisponível',
+                        bg: '#eee',
+                        border: '#ccc'
+                    }
+                }
             });
 
             // treeAction.getNodeById('child2').setState('R', 'allowed');

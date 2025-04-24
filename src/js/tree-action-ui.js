@@ -27,6 +27,21 @@ class TreeActionUI {
         this.showSearchControls = options.showSearchControls ?? true;
         this.showTreeActionHeader = options.showTreeActionHeader ?? true;
         this.showLevelControls = options.showLevelControls ?? true;
+        this.showLegend = options.showLegend ?? true;
+
+        // Legend configuration
+        this.legend = options.legend || {
+            unselected: {
+                text: 'Not Selected',
+                bg: '#fff',
+                border: '#ccc'
+            },
+            disabled: {
+                text: 'Not Available',
+                bg: '#eee',
+                border: '#ccc'
+            }
+        };
         
         // UI customization options
         this.maxHeight = options.maxHeight || null;
@@ -103,6 +118,10 @@ class TreeActionUI {
         this._renderNode(this.treeAction.rootNode, treeContainer);
         wrapper.appendChild(treeContainer);
 
+        if (this.showLegend) {
+            wrapper.appendChild(this._createLegend());
+        }
+
         container.appendChild(wrapper);
 
         // Restore the scroll position
@@ -167,6 +186,30 @@ class TreeActionUI {
 
         header.appendChild(operationsList);
         return header;
+    }
+
+    _createLegend() {
+        const legend = document.createElement('div');
+        legend.className = 'action-legend';
+
+        Object.entries(this.legend).forEach(([key, config]) => {
+            const item = document.createElement('div');
+            item.className = 'legend-item';
+            
+            const color = document.createElement('div');
+            color.className = 'legend-color';
+            color.style.background = config.bg;
+            color.style.borderColor = config.border;
+            
+            const text = document.createElement('span');
+            text.textContent = config.text;
+            
+            item.appendChild(color);
+            item.appendChild(text);
+            legend.appendChild(item);
+        });
+
+        return legend;
     }
 
     _createLevelControls() {

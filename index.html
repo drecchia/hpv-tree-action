@@ -274,6 +274,14 @@
                 showLevelControls: true,
                 maxHeight: 400,
                 showLegend: true, // Enable legend display (this is the default)
+                // Custom component order - demonstrates flexible layout
+                componentOrder: [
+                    'header',            // Header moved down
+                    'searchControls',    // Search at top for quick access
+                    'levelControls',     // Level controls second
+                    'treeContainer',     // Tree in the middle
+                    'legend'             // Legend at bottom
+                ],
                 legend: {
                     unselected: {
                         text: 'Não definida',

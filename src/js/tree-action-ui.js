@@ -8,6 +8,15 @@ class TreeActionUI {
         this.loadingText = options.loadingText || 'Loading data...';
         this.operationsTitle = options.operationsTitle || 'Node / Operations';
         
+        // Component order configuration
+        this.componentOrder = options.componentOrder || [
+            'header',
+            'levelControls',
+            'searchControls',
+            'treeContainer',
+            'legend'
+        ];
+        
         // Text options
         this.searchPlaceholderText = options.searchPlaceholderText || 'Search by node name...';
         this.searchButtonText = options.searchButtonText || 'Search';
@@ -92,35 +101,32 @@ class TreeActionUI {
         const wrapper = document.createElement('div');
         wrapper.className = 'tree-action-wrapper';
 
-        // Conditionally add UI components based on configuration
-        if (this.showTreeActionHeader) {
-            wrapper.appendChild(this._createOperationsHeader());
-        }
-        
-        if (this.showLevelControls) {
-            wrapper.appendChild(this._createLevelControls());
-        }
+        // Component creation mapping
+        const componentCreators = {
+            header: () => this.showTreeActionHeader ? this._createOperationsHeader() : null,
+            levelControls: () => this.showLevelControls ? this._createLevelControls() : null,
+            searchControls: () => this.showSearchControls ? this._createSearchControls() : null,
+            treeContainer: () => {
+                const container = document.createElement('div');
+                container.className = 'tree-container';
+                if (this.maxHeight) {
+                    container.style.maxHeight = typeof this.maxHeight === 'number' ? 
+                        `${this.maxHeight}px` : this.maxHeight;
+                    container.style.overflowY = 'auto';
+                }
+                this._renderNode(this.treeAction.rootNode, container);
+                return container;
+            },
+            legend: () => this.showLegend ? this._createLegend() : null
+        };
 
-        if (this.showSearchControls) {
-            wrapper.appendChild(this._createSearchControls());
-        }
-
-        // Create and add tree container
-        const treeContainer = document.createElement('div');
-        treeContainer.className = 'tree-container';
-        
-        // Apply maxHeight if set
-        if (this.maxHeight) {
-            treeContainer.style.maxHeight = typeof this.maxHeight === 'number' ? 
-                `${this.maxHeight}px` : this.maxHeight;
-            treeContainer.style.overflowY = 'auto';
-        }
-        this._renderNode(this.treeAction.rootNode, treeContainer);
-        wrapper.appendChild(treeContainer);
-
-        if (this.showLegend) {
-            wrapper.appendChild(this._createLegend());
-        }
+        // Add components in specified order
+        this.componentOrder.forEach(componentName => {
+            const component = componentCreators[componentName]?.();
+            if (component) {
+                wrapper.appendChild(component);
+            }
+        });
 
         container.appendChild(wrapper);
 

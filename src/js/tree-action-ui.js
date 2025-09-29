@@ -7,7 +7,7 @@ class TreeActionUI {
         this.containerId = options.containerId || 'tree-container';
         this.loadingText = options.loadingText || 'Loading data...';
         this.operationsTitle = options.operationsTitle || 'Node / Operations';
-        
+
         // Component order configuration
         this.componentOrder = options.componentOrder || [
             'header',
@@ -16,6 +16,12 @@ class TreeActionUI {
             'treeContainer',
             'legend'
         ];
+
+        // Store references to search elements to avoid recreating event listeners
+        this.searchControls = null;
+        this.searchInput = null;
+        this.searchButton = null;
+        this.clearSearchButton = null;
         
         // Text options
         this.searchPlaceholderText = options.searchPlaceholderText || 'Search by node name...';
@@ -77,10 +83,18 @@ class TreeActionUI {
 
     _setupEventListeners() {
         // Listen for tree events
-        this.treeAction.on(TreeAction.EVENTS.NODE.COLLAPSE, () => this.render());
-        this.treeAction.on(TreeAction.EVENTS.NODE.EXPAND, () => this.render());
-        this.treeAction.on(TreeAction.EVENTS.TREE.UPDATE, () => this.render());
-        this.treeAction.on(TreeAction.EVENTS.TREE.DATA_LOAD, () => this.render());
+        this.treeAction.on(TreeAction.EVENTS.NODE.COLLAPSE, () => {
+            this.render();
+        });
+        this.treeAction.on(TreeAction.EVENTS.NODE.EXPAND, () => {
+            this.render();
+        });
+        this.treeAction.on(TreeAction.EVENTS.TREE.UPDATE, () => {
+            this.render();
+        });
+        this.treeAction.on(TreeAction.EVENTS.TREE.DATA_LOAD, () => {
+            this.render();
+        });
     }
 
     render() {
@@ -138,44 +152,55 @@ class TreeActionUI {
     }
 
     _createSearchControls() {
-        const searchControls = document.createElement('div');
-        searchControls.className = 'search-controls';
+        // Create search controls container if it doesn't exist
+        if (!this.searchControls) {
+            this.searchControls = document.createElement('div');
+            this.searchControls.className = 'search-controls';
 
-        const searchInput = document.createElement('input');
-        searchInput.type = 'text';
-        searchInput.className = 'search-input';
-        searchInput.placeholder = this.searchPlaceholderText;
-        if (this.treeAction.currentSearchQuery) {
-            searchInput.value = this.treeAction.currentSearchQuery;
+            this.searchInput = document.createElement('input');
+            this.searchInput.type = 'text';
+            this.searchInput.className = 'search-input';
+            this.searchInput.placeholder = this.searchPlaceholderText;
+
+            this.searchButton = document.createElement('button');
+            this.searchButton.textContent = this.searchButtonText;
+            this.searchButton.className = 'tree-action-button';
+
+            this.clearSearchButton = document.createElement('button');
+            this.clearSearchButton.textContent = this.clearButtonText;
+            this.clearSearchButton.className = 'tree-action-button';
+
+            // Add event listeners once
+            this.searchButton.addEventListener('click', () => {
+                this.treeAction.search(this.searchInput.value);
+            });
+
+            this.searchInput.addEventListener('keyup', (event) => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    this.treeAction.search(this.searchInput.value);
+                }
+            });
+
+            this.clearSearchButton.addEventListener('click', () => {
+                this.searchInput.value = '';
+                this.treeAction.search();
+                // this.treeAction.collapseToLevel(0);
+            });
+
+            // Assemble the controls
+            this.searchControls.appendChild(this.searchInput);
+            this.searchControls.appendChild(this.searchButton);
+            this.searchControls.appendChild(this.clearSearchButton);
         }
 
-        const searchButton = document.createElement('button');
-        searchButton.textContent = this.searchButtonText;
-        searchButton.className = 'tree-action-button';
-        searchButton.addEventListener('click', () => {
-            this.treeAction.search(searchInput.value);
-        });
+        // Update the search input value in case the search query changed
+        if (this.treeAction.currentSearchQuery) {
+            this.searchInput.value = this.treeAction.currentSearchQuery;
+        }
 
-        searchInput.addEventListener('keyup', (event) => {
-            if (event.key === 'Enter') {
-                this.treeAction.search(searchInput.value);
-            }
-        });
-
-        const clearSearchButton = document.createElement('button');
-        clearSearchButton.textContent = this.clearButtonText;
-        clearSearchButton.className = 'tree-action-button';
-        clearSearchButton.addEventListener('click', () => {
-            searchInput.value = '';
-            this.treeAction.search();
-            // this.treeAction.collapseToLevel(0);
-        });
-
-        searchControls.appendChild(searchInput);
-        searchControls.appendChild(searchButton);
-        searchControls.appendChild(clearSearchButton);
-
-        return searchControls;
+        return this.searchControls;
     }
 
     _createOperationsHeader() {
